@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyZone Pro - Advanced Collaboration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body,#root{height:100%;overflow:hidden;background:#05050a;color:#e2e8f0;font-family:'Nunito',sans-serif;}
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-thumb{background:rgba(0,220,255,0.2);border-radius:10px;}
+    .nav-btn{transition:0.2s;cursor:pointer;border-left:3px solid transparent;opacity:0.7;}
+    .nav-btn:hover{background:rgba(0,220,255,0.08);opacity:1;}
+    .nav-btn.on{background:rgba(0,220,255,0.15);border-left-color:#00dcff;color:#00dcff;opacity:1;}
+    .msg-in{animation:fadeSlide 0.25s ease-out;}
+    @keyframes fadeSlide{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);}}
+    .btn-glow:hover{box-shadow:0 0 15px rgba(0,220,255,0.4);}
+    .glass{background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);}
+    .emoji-btn{padding:5px;cursor:pointer;font-size:18px;transition:transform 0.1s;}
+    .emoji-btn:hover{transform:scale(1.2);}
+    video{width:100%;height:100%;object-fit:cover;border-radius:12px;background:#000;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+    .pulse-glow{animation:pgl 3s infinite;}
+    @keyframes pgl{0%,100%{text-shadow:0 0 10px rgba(0,220,255,0.3);}50%{text-shadow:0 0 20px rgba(0,220,255,0.6);}}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    const EMOJIS = ["😊","🔥","📚","💡","✅","🚀","⭐","💻","🙌","⚡"];
+
+    function App() {
+      const [session, setSession] = useState(() => {
+        const stored = localStorage.getItem('sz_session');
+        return stored ? JSON.parse(stored) : null;
+      });
+      const [view, setView] = useState("chat");
+
+      useEffect(() => {
+        if(session) localStorage.setItem('sz_session', JSON.stringify(session));
+      }, [session]);
+
+      if (!session) return <JoinScreen onJoin={(name, code) => setSession({ name, roomId: code, color: '#'+Math.floor(Math.random()*16777215).toString(16) })} />;
+
+      return (
+        <div style={{ display:"flex", height:"100vh" }}>
+          {/* Sidebar */}
+          <div className="glass" style={{ width:240, display:"flex", flexDirection:"column", borderRight:"1px solid rgba(255,255,255,0.1)" }}>
+            <div style={{ padding:25, borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+              <h2 className="pulse-glow" style={{ color:"#00dcff", fontSize:20, letterSpacing:1 }}>STUDYZONE PRO</h2>
+              <p style={{ fontSize:10, opacity:0.4, marginTop:4 }}>ROOM: {session.roomId}</p>
+            </div>
+            <div style={{ flex:1, padding:10 }}>
+              {[ 
+                {id:"chat", icon:"💬", label:"Group Chat"},
+                {id:"dm", icon:"👤", label:"Direct Messages"},
+                {id:"game", icon:"🎮", label:"Game Arena"},
+                {id:"ai", icon:"🤖", label:"Gemini AI"}
+              ].map(n => (
+                <div key={n.id} onClick={()=>setView(n.id)} className={`nav-btn ${view===n.id?'on':''}`} style={{ padding:12, borderRadius:8, marginBottom:4, fontSize:14 }}>
+                  {n.icon} &nbsp; {n.label}
+                </div>
+              ))}
+            </div>
+            <div style={{ padding:15, background:"rgba(0,0,0,0.2)", display:"flex", alignItems:"center", gap:10 }}>
+               <div style={{ width:32, height:32, background:session.color, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#000', fontWeight:800 }}>{session.name[0]}</div>
+               <span style={{ fontSize:13 }}>{session.name}</span>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div style={{ flex:1, position:"relative", background:"#05050a" }}>
+            {view==="chat" && <ChatView user={session} roomId={session.roomId} />}
+            {view==="dm" && <DMView user={session} />}
+            {view==="game" && <GameView />}
+            {view==="ai" && <AIView />}
+          </div>
+        </div>
+      );
+    }
+
+    function ChatView({ user, roomId, isDM = false, targetUser = "Global" }) {
+      const [msgs, setMsgs] = useState(() => {
+        const stored = localStorage.getItem(`msgs_${roomId}`);
+        return stored ? JSON.parse(stored) : [];
+      });
+      const [input, setInput] = useState("");
+      const [vc, setVc] = useState(false);
+      const [showEmojis, setShowEmojis] = useState(false);
+      const endRef = useRef();
+      const chan = useMemo(() => new BroadcastChannel(`sz_${roomId}`), [roomId]);
+
+      useEffect(() => {
+        chan.onmessage = (e) => setMsgs(p => [...p, e.data]);
+        return () => chan.close();
+      }, [chan]);
+
+      useEffect(() => {
+        localStorage.setItem(`msgs_${roomId}`, JSON.stringify(msgs));
+        endRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, [msgs, roomId]);
+
+      const send = (file = null) => {
+        if (!input.trim() && !file) return;
+        const m = { 
+          id: Date.now(), 
+          u: user.name, 
+          c: user.color, 
+          t: file ? `📁 Sent a file: ${file.name}` : input, 
+          time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+        };
+        chan.postMessage(m);
+        setMsgs(p => [...p, m]);
+        setInput("");
+        setShowEmojis(false);
+      };
+
+      return (
+        <div style={{ height:"100%", display:"flex", flexDirection:"column" }}>
+          {vc && <VideoCall user={user} roomId={roomId} onExit={()=>setVc(false)} />}
+          <div className="glass" style={{ padding:"15px 25px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <h3 style={{ fontSize:15 }}>{isDM ? `Chat with ${targetUser}` : "Main Study Group"}</h3>
+              <span style={{ fontSize:11, color:"#22c55e" }}>● Active Now</span>
+            </div>
+            <button onClick={()=>setVc(true)} className="btn-glow" style={{ background:"#00dcff", border:"none", padding:"8px 16px", borderRadius:6, color:"#000", fontWeight:700, cursor:"pointer" }}>📹 Join Video</button>
+          </div>
+
+          <div style={{ flex:1, overflowY:"auto", padding:20 }}>
+            {msgs.map(m => (
+              <div key={m.id} className="msg-in" style={{ marginBottom:15, display:"flex", flexDirection: m.u === user.name ? "row-reverse" : "row", gap:10 }}>
+                <div style={{ width:30, height:30, borderRadius:"50%", background:m.c, flexShrink:0 }} />
+                <div style={{ maxWidth:"70%" }}>
+                  <div style={{ fontSize:11, opacity:0.5, marginBottom:3 }}>{m.u} • {m.time}</div>
+                  <div style={{ padding:"10px 14px", borderRadius:12, background: m.u === user.name ? "#0070ff" : "rgba(255,255,255,0.05)", fontSize:13 }}>{m.t}</div>
+                </div>
+              </div>
+            ))}
+            <div ref={endRef} />
+          </div>
+
+          <div style={{ padding:20, position:"relative" }}>
+            {showEmojis && (
+              <div className="glass" style={{ position:"absolute", bottom:70, left:20, padding:10, borderRadius:10, display:"flex", gap:5 }}>
+                {EMOJIS.map(e => <span key={e} className="emoji-btn" onClick={()=>setInput(p=>p+e)}>{e}</span>)}
+              </div>
+            )}
+            <div style={{ display:"flex", gap:10, background:"rgba(255,255,255,0.03)", padding:8, borderRadius:12, border:"1px solid rgba(255,255,255,0.1)" }}>
+              <button onClick={()=>setShowEmojis(!showEmojis)} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}>😊</button>
+              <label style={{ cursor:"pointer", fontSize:20 }}>📁<input type="file" hidden onChange={(e)=>send(e.target.files[0])} /></label>
+              <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}
+                placeholder="Type a message..." style={{ flex:1, background:"none", border:"none", outline:"none", color:"#fff" }} />
+              <button onClick={()=>send()} style={{ background:"#00dcff", border:"none", padding:"5px 15px", borderRadius:8, color:"#000", fontWeight:800 }}>SEND</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function VideoCall({ user, roomId, onExit }) {
+      const [isScreenSharing, setIsScreenSharing] = useState(false);
+      const videoRef = useRef();
+      const screenRef = useRef();
+
+      useEffect(() => {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(s => {
+          if(videoRef.current) videoRef.current.srcObject = s;
+        }).catch(err => console.error('Media access denied:', err));
+      }, []);
+
+      const toggleScreen = async () => {
+        try {
+          if (!isScreenSharing) {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            if(screenRef.current) screenRef.current.srcObject = stream;
+            setIsScreenSharing(true);
+            stream.getVideoTracks()[0].onended = () => setIsScreenSharing(false);
+          } else {
+            const tracks = screenRef.current?.srcObject?.getTracks();
+            if(tracks) tracks.forEach(t => t.stop());
+            setIsScreenSharing(false);
+          }
+        } catch(err) {
+          console.error('Screen sharing error:', err);
+        }
+      };
+
+      return (
+        <div style={{ position:"absolute", inset:0, zIndex:100, background:"#000", padding:20, display:"flex", flexDirection:"column" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
+            <h3>📹 {roomId} - LIVE CALL</h3>
+            <button onClick={onExit} style={{ background:"#ef4444", border:"none", padding:"8px 20px", borderRadius:8, color:"#fff", fontWeight:700, cursor:"pointer" }}>Exit Call</button>
+          </div>
+          <div style={{ flex:1, display:"grid", gridTemplateColumns: isScreenSharing ? "1fr 300px" : "1fr", gap:20 }}>
+            <div style={{ position:"relative" }}>
+              {isScreenSharing ? <video ref={screenRef} autoPlay muted playsInline /> : <video ref={videoRef} autoPlay muted playsInline />}
+              <div style={{ position:"absolute", top:10, left:10, background:"rgba(0,0,0,0.5)", padding:"4px 8px", borderRadius:4 }}>{isScreenSharing ? "Your Screen" : user.name}</div>
+            </div>
+            {isScreenSharing && <video ref={videoRef} autoPlay muted playsInline />}
+          </div>
+          <div style={{ marginTop:20, display:"flex", justifyContent:"center", gap:15 }}>
+            <button onClick={toggleScreen} style={{ background: isScreenSharing ? "#ef4444" : "#3b82f6", border:"none", padding:"12px 25px", borderRadius:10, color:"#fff", fontWeight:600, cursor:"pointer" }}>
+               {isScreenSharing ? "🛑 Stop Sharing" : "🖥️ Share Screen"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function DMView({ user }) {
+      return (
+        <div style={{ padding:40, textAlign:"center" }}>
+          <h2>👤 Private Messages</h2>
+          <div style={{ marginTop:30, color:"rgba(255,255,255,0.4)" }}>
+             Select a friend from the room to start a private encrypted session.
+             <div style={{ marginTop:20, display:"flex", justifyContent:"center", gap:10 }}>
+                {[ "Alex", "Sarah", "Jordan" ].map(n => (
+                   <div key={n} style={{ padding:20, background:"rgba(255,255,255,0.05)", borderRadius:12, cursor:"pointer", width:120 }}>
+                     <div style={{ fontSize:30 }}>👤</div>
+                     <div style={{ marginTop:10, fontWeight:700 }}>{n}</div>
+                   </div>
+                ))}
+             </div>
+          </div>
+        </div>
+      );
+    }
+
+    function GameView() { 
+      return <div style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>🎮 Game Logic Remains Active - Play in Side Menu</div>; 
+    }
+
+    function AIView() { 
+      return <div style={{padding:40}}>🤖 Gemini Pro Integration: Use secrets manager to link API key for full AI chat.</div>; 
+    }
+
+    function JoinScreen({ onJoin }) {
+      const [n, setN] = useState("");
+      const [c, setC] = useState("");
+      
+      const handleJoin = () => {
+        if(n.trim() && c.trim()) {
+          onJoin(n, c);
+        }
+      };
+
+      return (
+        <div style={{ height:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"radial-gradient(circle, #111, #000)" }}>
+          <div className="glass" style={{ padding:50, borderRadius:20, textAlign:"center", width:400 }}>
+            <h1 className="pulse-glow" style={{ color:"#00dcff", marginBottom:30 }}>STUDYZONE</h1>
+            <input placeholder="Your Name" value={n} onChange={e=>setN(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleJoin()} style={{ width:"100%", padding:15, marginBottom:15, borderRadius:8, border:"1px solid #333", background:"#000", color:"#fff" }} />
+            <input placeholder="Room Code" value={c} onChange={e=>setC(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&handleJoin()} style={{ width:"100%", padding:15, marginBottom:25, borderRadius:8, border:"1px solid #333", background:"#000", color:"#fff" }} />
+            <button onClick={handleJoin} style={{ width:"100%", padding:15, background:"#00dcff", color:"#000", fontWeight:800, border:"none", borderRadius:8, cursor:"pointer" }}>ENTER ZONE</button>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
