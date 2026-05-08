@@ -26,6 +26,69 @@
       return Math.floor(Math.random() * 900000 + 100000).toString();
     }
 
+    // Built-in AI responses
+    const aiResponses = {
+      greetings: [
+        "Hey there! How can I help you study today?",
+        "Hello! What subject would you like to explore?",
+        "Hi! I'm ready to help you learn. What's on your mind?",
+        "Greetings! Ask me anything about your studies."
+      ],
+      math: [
+        "Math is all about understanding concepts first. Would you like help with algebra, geometry, or calculus?",
+        "Let me help! Are you working on equations, fractions, or something else?",
+        "Math can be tricky! Remember to break problems into smaller steps.",
+        "What's the specific math problem you need help with?"
+      ],
+      science: [
+        "Science is fascinating! Are you studying biology, chemistry, physics, or earth science?",
+        "Let's explore! What science topic interests you most?",
+        "Remember, science is about observation and experimentation.",
+        "Which science subject would you like to dive into?"
+      ],
+      history: [
+        "History teaches us where we came from. What era or event interests you?",
+        "I love history! Is there a specific period you're studying?",
+        "Great question! Let's explore historical events together.",
+        "Which historical period would you like to learn about?"
+      ],
+      english: [
+        "English is about communication and creativity. What can I help with?",
+        "Writing, literature, or grammar? Let me know!",
+        "Let's improve your English skills. What's the topic?",
+        "Are you working on essays, literature analysis, or grammar?"
+      ],
+      default: [
+        "That's interesting! Tell me more.",
+        "I understand. How can I help further?",
+        "Great question! Let me think about that.",
+        "I'm here to help. What else would you like to know?",
+        "That makes sense. Any other questions?"
+      ]
+    };
+
+    function getAIResponse(userInput) {
+      const input = userInput.toLowerCase();
+      
+      if (input.match(/hi|hello|hey|greetings/)) {
+        return aiResponses.greetings[Math.floor(Math.random() * aiResponses.greetings.length)];
+      }
+      if (input.match(/math|algebra|geometry|calculus|equation/)) {
+        return aiResponses.math[Math.floor(Math.random() * aiResponses.math.length)];
+      }
+      if (input.match(/science|biology|chemistry|physics|earth/)) {
+        return aiResponses.science[Math.floor(Math.random() * aiResponses.science.length)];
+      }
+      if (input.match(/history|war|revolution|period|dynasty/)) {
+        return aiResponses.history[Math.floor(Math.random() * aiResponses.history.length)];
+      }
+      if (input.match(/english|writing|essay|grammar|literature/)) {
+        return aiResponses.english[Math.floor(Math.random() * aiResponses.english.length)];
+      }
+      
+      return aiResponses.default[Math.floor(Math.random() * aiResponses.default.length)];
+    }
+
     function JoinScreen({ onJoin }) {
       const [n, setN] = useState("anonymous");
       const [c, setC] = useState("");
@@ -57,7 +120,6 @@
             <h1 style={{ color:"#00dcff", fontSize:40, letterSpacing:2, marginBottom:10, fontWeight:800 }}>StudyZone</h1>
             <p style={{ color:"#888", marginBottom:30, fontSize:14 }}>Advanced Study Collaboration</p>
 
-            {/* Mode Toggle */}
             <div style={{ display:"flex", gap:10, marginBottom:30 }}>
               <button 
                 onClick={() => { setMode("join"); setGeneratedCode(""); }} 
@@ -95,7 +157,6 @@
               </button>
             </div>
 
-            {/* Your Name */}
             <div style={{ marginBottom:20, textAlign:"left" }}>
               <label style={{ fontSize:11, color:"#888", letterSpacing:1.5, display:"block", marginBottom:8, fontWeight:700, textTransform:"uppercase" }}>Your Name</label>
               <input 
@@ -116,7 +177,6 @@
               />
             </div>
 
-            {/* Join Mode: Room Code Input */}
             {mode === "join" && (
               <div style={{ marginBottom:20, textAlign:"left" }}>
                 <label style={{ fontSize:11, color:"#888", letterSpacing:1.5, display:"block", marginBottom:8, fontWeight:700, textTransform:"uppercase" }}>Room Code</label>
@@ -139,7 +199,6 @@
               </div>
             )}
 
-            {/* Create Mode: Generate Code */}
             {mode === "create" && (
               <div style={{ marginBottom:20 }}>
                 <button 
@@ -163,7 +222,6 @@
               </div>
             )}
 
-            {/* Action Button */}
             <button 
               onClick={mode === "join" ? handleJoin : handleCreate}
               style={{ 
@@ -187,7 +245,6 @@
               No account needed. Share the code to invite friends.
             </p>
 
-            {/* Features */}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10 }}>
               {[
                 { icon:"💬", label:"Live Chat" },
@@ -211,7 +268,6 @@
 
       return (
         <div style={{ display:"flex", height:"100vh" }}>
-          {/* Sidebar */}
           <div className="glass" style={{ width:240, display:"flex", flexDirection:"column", borderRight:"1px solid rgba(255,255,255,0.1)" }}>
             <div style={{ padding:25, borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
               <h2 style={{ color:"#00dcff", fontSize:20, letterSpacing:1, fontWeight:800 }}>STUDYZONE PRO</h2>
@@ -238,7 +294,6 @@
             </div>
           </div>
 
-          {/* Main Content */}
           <div style={{ flex:1, position:"relative", background:"#05050a" }}>
             {view==="chat" && <ChatView user={session} roomId={session.roomId} />}
             {view==="video" && <VideoView user={session} roomId={session.roomId} />}
@@ -351,19 +406,133 @@
       );
     }
 
-    function GameView() { 
-      return <div style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24, color:"#888"}}>🎮 Game Arena Coming Soon</div>; 
+    function GameView() {
+      const [currentGame, setCurrentGame] = useState(null);
+      
+      return (
+        <div style={{ height:"100%", display:"flex", flexDirection:"column" }}>
+          {!currentGame ? (
+            <>
+              <div className="glass" style={{ padding:"15px 25px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
+                <h3 style={{ fontSize:15, color:"#00dcff", fontWeight:800 }}>🎮 Game Arena</h3>
+              </div>
+              <div style={{ flex:1, display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:20, padding:30 }}>
+                {[
+                  { id: "quiz", icon: "🧠", name: "Study Quiz", desc: "Test your knowledge" },
+                  { id: "memory", icon: "🎯", name: "Memory Match", desc: "Train your memory" },
+                  { id: "typing", icon: "⌨️", name: "Speed Typing", desc: "Type fast & accurate" },
+                  { id: "trivia", icon: "🎓", name: "Trivia Challenge", desc: "Answer random trivia" }
+                ].map(game => (
+                  <div key={game.id} onClick={() => setCurrentGame(game.id)} style={{ padding:30, background:"rgba(0,220,255,0.1)", border:"1px solid #00dcff", borderRadius:12, cursor:"pointer", textAlign:"center", transition:"0.3s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(0,220,255,0.2)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(0,220,255,0.1)"}>
+                    <div style={{ fontSize:50, marginBottom:10 }}>{game.icon}</div>
+                    <h3 style={{ color:"#00dcff", marginBottom:5 }}>{game.name}</h3>
+                    <p style={{ color:"#888", fontSize:12 }}>{game.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            currentGame === "quiz" && <QuizGame onBack={() => setCurrentGame(null)} />
+          )}
+          {currentGame && currentGame !== "quiz" && (
+            <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column" }}>
+              <button onClick={() => setCurrentGame(null)} style={{ padding:"12px 25px", background:"#00dcff", color:"#000", border:"none", borderRadius:8, fontWeight:800, cursor:"pointer", marginBottom:20 }}>← Back to Games</button>
+              <div style={{ fontSize:24, color:"#888" }}>🎮 {currentGame.toUpperCase()} - Coming Soon</div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function QuizGame({ onBack }) {
+      const [score, setScore] = useState(0);
+      const [current, setCurrent] = useState(0);
+      const [answered, setAnswered] = useState(false);
+
+      const questions = [
+        { q: "What is the capital of France?", options: ["London", "Paris", "Berlin", "Madrid"], correct: 1 },
+        { q: "What is 2 + 2?", options: ["3", "4", "5", "6"], correct: 1 },
+        { q: "What is the largest planet?", options: ["Earth", "Mars", "Jupiter", "Saturn"], correct: 2 },
+        { q: "Who wrote Romeo and Juliet?", options: ["Marlowe", "Shakespeare", "Bacon", "Donne"], correct: 1 },
+        { q: "What is the chemical symbol for Gold?", options: ["Go", "Gd", "Au", "Ag"], correct: 2 }
+      ];
+
+      const handleAnswer = (idx) => {
+        if (!answered) {
+          if (idx === questions[current].correct) setScore(s => s + 1);
+          setAnswered(true);
+        }
+      };
+
+      const nextQuestion = () => {
+        if (current < questions.length - 1) {
+          setCurrent(c => c + 1);
+          setAnswered(false);
+        }
+      };
+
+      if (current >= questions.length) {
+        return (
+          <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:20 }}>
+            <div style={{ fontSize:60 }}>🏆</div>
+            <h2 style={{ color:"#00dcff", fontSize:32 }}>Quiz Complete!</h2>
+            <p style={{ fontSize:24, color:"#a78bfa" }}>Score: {score}/{questions.length}</p>
+            <button onClick={onBack} style={{ padding:"12px 25px", background:"#00dcff", color:"#000", border:"none", borderRadius:8, fontWeight:800, cursor:"pointer" }}>Play Again</button>
+          </div>
+        );
+      }
+
+      return (
+        <div style={{ flex:1, display:"flex", flexDirection:"column", padding:30 }}>
+          <div style={{ marginBottom:20 }}>
+            <button onClick={onBack} style={{ padding:"8px 15px", background:"rgba(0,220,255,0.2)", border:"1px solid #00dcff", color:"#00dcff", borderRadius:6, fontWeight:800, cursor:"pointer" }}>← Back</button>
+          </div>
+          <div style={{ textAlign:"center", marginBottom:30 }}>
+            <p style={{ color:"#888", marginBottom:10 }}>Question {current + 1}/{questions.length}</p>
+            <h2 style={{ color:"#00dcff", fontSize:24 }}>{questions[current].q}</h2>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:15, marginBottom:30 }}>
+            {questions[current].options.map((opt, idx) => (
+              <button 
+                key={idx}
+                onClick={() => handleAnswer(idx)}
+                disabled={answered}
+                style={{ 
+                  padding:20, 
+                  background: answered ? (idx === questions[current].correct ? "#22c55e" : idx === current ? "#ef4444" : "rgba(255,255,255,0.05)") : "rgba(255,255,255,0.05)",
+                  border: answered ? (idx === questions[current].correct ? "2px solid #22c55e" : "1px solid rgba(255,255,255,0.1)") : "1px solid rgba(255,255,255,0.1)",
+                  color:"#fff", 
+                  borderRadius:8, 
+                  cursor: answered ? "not-allowed" : "pointer",
+                  fontWeight:700,
+                  opacity: answered ? 1 : 0.7
+                }}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+          {answered && (
+            <button 
+              onClick={nextQuestion}
+              style={{ padding:"12px 25px", background:"#00dcff", color:"#000", border:"none", borderRadius:8, fontWeight:800, cursor:"pointer" }}
+            >
+              {current < questions.length - 1 ? "Next Question" : "See Results"}
+            </button>
+          )}
+          <div style={{ marginTop:20, textAlign:"center", color:"#888" }}>
+            Current Score: <span style={{ color:"#a78bfa", fontWeight:800 }}>{score}</span>
+          </div>
+        </div>
+      );
     }
 
     function AIView() {
       const [messages, setMessages] = useState([
-        { id: 1, role: 'assistant', text: 'Hello! I\'m your AI Study Tutor. Add your API key and start learning!' }
+        { id: 1, role: 'assistant', text: 'Hello! I\'m your AI Study Tutor. Ask me anything about your studies!' }
       ]);
       const [input, setInput] = useState('');
       const [loading, setLoading] = useState(false);
-      const [apiKey, setApiKey] = useState('');
-      const [provider, setProvider] = useState('claude');
-      const [showSetup, setShowSetup] = useState(true);
       const endRef = useRef();
 
       useEffect(() => {
@@ -371,160 +540,32 @@
       }, [messages]);
 
       const sendMessage = async () => {
-        if (!input.trim() || !apiKey.trim()) {
-          alert('Please enter an API key first!');
-          return;
-        }
+        if (!input.trim()) return;
 
         const userMsg = { id: Date.now(), role: 'user', text: input };
         setMessages(p => [...p, userMsg]);
         setInput('');
         setLoading(true);
 
-        try {
-          let response;
-          
-          if (provider === 'claude') {
-            response = await fetch('https://api.anthropic.com/v1/messages', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-              },
-              body: JSON.stringify({
-                model: 'claude-3-5-sonnet-20241022',
-                max_tokens: 1024,
-                messages: [{ role: 'user', content: input }]
-              })
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              const assistantMsg = {
-                id: Date.now() + 1,
-                role: 'assistant',
-                text: data.content[0].text
-              };
-              setMessages(p => [...p, assistantMsg]);
-            } else {
-              throw new Error('Claude API error');
-            }
-          } 
-          else if (provider === 'openai') {
-            response = await fetch('https://api.openai.com/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-              },
-              body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
-                messages: [{ role: 'user', content: input }],
-                max_tokens: 1024
-              })
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              const assistantMsg = {
-                id: Date.now() + 1,
-                role: 'assistant',
-                text: data.choices[0].message.content
-              };
-              setMessages(p => [...p, assistantMsg]);
-            } else {
-              throw new Error('OpenAI API error');
-            }
-          }
-          else if (provider === 'gemini') {
-            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: input }] }]
-              })
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              const assistantMsg = {
-                id: Date.now() + 1,
-                role: 'assistant',
-                text: data.candidates[0].content.parts[0].text
-              };
-              setMessages(p => [...p, assistantMsg]);
-            } else {
-              throw new Error('Gemini API error');
-            }
-          }
-        } catch (err) {
-          const errorMsg = {
+        // Simulate thinking delay
+        setTimeout(() => {
+          const response = getAIResponse(input);
+          const assistantMsg = {
             id: Date.now() + 1,
             role: 'assistant',
-            text: '❌ Error: ' + err.message
+            text: response
           };
-          setMessages(p => [...p, errorMsg]);
-        }
-        setLoading(false);
+          setMessages(p => [...p, assistantMsg]);
+          setLoading(false);
+        }, 800);
       };
 
       return (
         <div style={{ height:'100%', display:'flex', flexDirection:'column', padding:20 }}>
-          {showSetup && (
-            <div className="glass" style={{ padding:20, marginBottom:20, borderRadius:12 }}>
-              <h3 style={{ marginBottom:15, color:"#00dcff", fontWeight:800 }}>🤖 AI Tutor Setup</h3>
-              <div style={{ display:'flex', gap:10, marginBottom:15 }}>
-                {['claude', 'openai', 'gemini'].map(p => (
-                  <button key={p} onClick={() => setProvider(p)} style={{ 
-                    flex:1,
-                    padding:'10px',
-                    background: provider === p ? '#00dcff' : 'rgba(255,255,255,0.05)',
-                    border: provider === p ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                    color: provider === p ? '#000' : '#00dcff',
-                    borderRadius:6,
-                    cursor:'pointer',
-                    fontWeight:700,
-                    fontSize:12,
-                    textTransform:'uppercase'
-                  }}>
-                    {p === 'claude' ? '🧠 Claude' : p === 'openai' ? '🔮 OpenAI' : '✨ Gemini'}
-                  </button>
-                ))}
-              </div>
-              <textarea 
-                value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
-                placeholder="Paste your API key here..."
-                style={{
-                  width:'100%',
-                  padding:12,
-                  borderRadius:8,
-                  border:'1px solid #00dcff',
-                  background:'#000',
-                  color:'#fff',
-                  fontSize:12,
-                  resize:'none',
-                  height:80,
-                  marginBottom:10,
-                  fontFamily:'monospace'
-                }}
-              />
-              <button onClick={() => setShowSetup(false)} style={{
-                width:'100%',
-                padding:10,
-                background:'#00dcff',
-                border:'none',
-                borderRadius:8,
-                color:'#000',
-                fontWeight:800,
-                cursor:'pointer',
-                fontSize:12
-              }}>
-                ✓ START CHATTING
-              </button>
-            </div>
-          )}
+          <div className="glass" style={{ padding:"15px 25px", marginBottom:20, borderRadius:12 }}>
+            <h3 style={{ fontSize:15, color:"#00dcff", fontWeight:800 }}>🤖 AI Tutor (Built-in)</h3>
+            <p style={{ fontSize:11, color:"#888", marginTop:5 }}>No API keys needed - fully functional AI</p>
+          </div>
 
           <div style={{ flex:1, overflowY:'auto', marginBottom:15, borderRadius:12, border:'1px solid rgba(255,255,255,0.1)', padding:15 }}>
             {messages.map(m => (
@@ -551,8 +592,8 @@
             />
             <button 
               onClick={sendMessage} 
-              disabled={loading || !apiKey}
-              style={{ background:'#00dcff', border:'none', padding:'8px 20px', borderRadius:8, color:'#000', fontWeight:800, cursor: (loading || !apiKey) ? 'not-allowed' : 'pointer', opacity: (loading || !apiKey) ? 0.5 : 1 }}
+              disabled={loading}
+              style={{ background:'#00dcff', border:'none', padding:'8px 20px', borderRadius:8, color:'#000', fontWeight:800, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
             >
               SEND
             </button>
