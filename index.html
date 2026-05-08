@@ -10,18 +10,11 @@
     html,body,#root{height:100%;overflow:hidden;background:#05050a;color:#e2e8f0;font-family:'Nunito',sans-serif;}
     ::-webkit-scrollbar{width:6px;}
     ::-webkit-scrollbar-thumb{background:rgba(0,220,255,0.2);border-radius:10px;}
-    .nav-btn{transition:0.2s;cursor:pointer;border-left:3px solid transparent;opacity:0.7;}
-    .nav-btn:hover{background:rgba(0,220,255,0.08);opacity:1;}
-    .nav-btn.on{background:rgba(0,220,255,0.15);border-left-color:#00dcff;color:#00dcff;opacity:1;}
-    .msg-in{animation:fadeSlide 0.25s ease-out;}
-    @keyframes fadeSlide{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);}}
-    .btn-glow:hover{box-shadow:0 0 15px rgba(0,220,255,0.4);}
     .glass{background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);}
-    .emoji-btn{padding:5px;cursor:pointer;font-size:18px;transition:transform 0.1s;}
-    .emoji-btn:hover{transform:scale(1.2);}
-    video{width:100%;height:100%;object-fit:cover;border-radius:12px;background:#000;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
     .pulse-glow{animation:pgl 3s infinite;}
     @keyframes pgl{0%,100%{text-shadow:0 0 10px rgba(0,220,255,0.3);}50%{text-shadow:0 0 20px rgba(0,220,255,0.6);}}
+    .gradient-btn{background:linear-gradient(135deg, #00dcff, #a78bfa);transition:0.3s;border:none;cursor:pointer;fontWeight:800;}
+    .gradient-btn:hover{box-shadow:0 0 20px rgba(0,220,255,0.5);transform:scale(1.02);}
   </style>
 </head>
 <body>
@@ -33,16 +26,18 @@
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo } = React;
 
-    const EMOJIS = ["😊","🔥","📚","💡","✅","🚀","⭐","💻","🙌","⚡"];
-
     function generateRoomCode() {
-      return Math.random().toString(36).substring(2, 8).toUpperCase();
+      return Math.floor(Math.random() * 900000 + 100000).toString();
     }
 
     function App() {
       const [session, setSession] = useState(() => {
-        const stored = localStorage.getItem('sz_session');
-        return stored ? JSON.parse(stored) : null;
+        try {
+          const stored = localStorage.getItem('sz_session');
+          return stored ? JSON.parse(stored) : null;
+        } catch {
+          return null;
+        }
       });
       const [view, setView] = useState("chat");
 
@@ -50,7 +45,7 @@
         if(session) localStorage.setItem('sz_session', JSON.stringify(session));
       }, [session]);
 
-      if (!session) return <JoinScreen onJoin={(name, code, isCreating) => setSession({ name, roomId: code, color: '#'+Math.floor(Math.random()*16777215).toString(16), isCreator: isCreating })} />;
+      if (!session) return <JoinScreen onJoin={(name, code) => setSession({ name, roomId: code, color: '#'+Math.floor(Math.random()*16777215).toString(16) })} />;
 
       return (
         <div style={{ display:"flex", height:"100vh" }}>
@@ -62,12 +57,12 @@
             </div>
             <div style={{ flex:1, padding:10 }}>
               {[ 
-                {id:"chat", icon:"💬", label:"Group Chat"},
-                {id:"dm", icon:"👤", label:"Direct Messages"},
+                {id:"chat", icon:"💬", label:"Live Chat"},
+                {id:"video", icon:"📹", label:"Video Call"},
                 {id:"game", icon:"🎮", label:"Game Arena"},
                 {id:"ai", icon:"🤖", label:"AI Tutor"}
               ].map(n => (
-                <div key={n.id} onClick={()=>setView(n.id)} className={`nav-btn ${view===n.id?'on':''}`} style={{ padding:12, borderRadius:8, marginBottom:4, fontSize:14, cursor:"pointer" }}>
+                <div key={n.id} onClick={()=>setView(n.id)} style={{ padding:12, borderRadius:8, marginBottom:4, fontSize:14, cursor:"pointer", transition:"0.2s", background: view===n.id ? "rgba(0,220,255,0.15)" : "transparent", borderLeft: view===n.id ? "3px solid #00dcff" : "3px solid transparent", color: view===n.id ? "#00dcff" : "#e2e8f0" }}>
                   {n.icon} &nbsp; {n.label}
                 </div>
               ))}
@@ -81,7 +76,7 @@
           {/* Main Content */}
           <div style={{ flex:1, position:"relative", background:"#05050a" }}>
             {view==="chat" && <ChatView user={session} roomId={session.roomId} />}
-            {view==="dm" && <DMView user={session} />}
+            {view==="video" && <VideoView user={session} roomId={session.roomId} />}
             {view==="game" && <GameView />}
             {view==="ai" && <AIView />}
           </div>
@@ -89,14 +84,16 @@
       );
     }
 
-    function ChatView({ user, roomId, isDM = false, targetUser = "Global" }) {
+    function ChatView({ user, roomId }) {
       const [msgs, setMsgs] = useState(() => {
-        const stored = localStorage.getItem(`msgs_${roomId}`);
-        return stored ? JSON.parse(stored) : [];
+        try {
+          const stored = localStorage.getItem(`msgs_${roomId}`);
+          return stored ? JSON.parse(stored) : [];
+        } catch {
+          return [];
+        }
       });
       const [input, setInput] = useState("");
-      const [vc, setVc] = useState(false);
-      const [showEmojis, setShowEmojis] = useState(false);
       const endRef = useRef();
       const chan = useMemo(() => new BroadcastChannel(`sz_${roomId}`), [roomId]);
 
@@ -110,72 +107,61 @@
         endRef.current?.scrollIntoView({ behavior: "smooth" });
       }, [msgs, roomId]);
 
-      const send = (file = null) => {
-        if (!input.trim() && !file) return;
+      const send = () => {
+        if (!input.trim()) return;
         const m = { 
           id: Date.now(), 
           u: user.name, 
           c: user.color, 
-          t: file ? `📁 Sent a file: ${file.name}` : input, 
+          t: input, 
           time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
         };
         chan.postMessage(m);
         setMsgs(p => [...p, m]);
         setInput("");
-        setShowEmojis(false);
       };
 
       return (
         <div style={{ height:"100%", display:"flex", flexDirection:"column" }}>
-          {vc && <VideoCall user={user} roomId={roomId} onExit={()=>setVc(false)} />}
-          <div className="glass" style={{ padding:"15px 25px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <div>
-              <h3 style={{ fontSize:15 }}>{isDM ? `Chat with ${targetUser}` : "Main Study Group"}</h3>
-              <span style={{ fontSize:11, color:"#22c55e" }}>● Active Now</span>
-            </div>
-            <button onClick={()=>setVc(true)} className="btn-glow" style={{ background:"#00dcff", border:"none", padding:"8px 16px", borderRadius:6, color:"#000", fontWeight:700, cursor:"pointer" }}>📹 Join Video</button>
+          <div className="glass" style={{ padding:"15px 25px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
+            <h3 style={{ fontSize:15, color:"#00dcff" }}>💬 Live Chat</h3>
+            <span style={{ fontSize:11, color:"#22c55e" }}>● Active Now</span>
           </div>
 
           <div style={{ flex:1, overflowY:"auto", padding:20 }}>
+            {msgs.length === 0 && <div style={{ textAlign:"center", color:"#666", marginTop:40 }}>No messages yet. Start chatting!</div>}
             {msgs.map(m => (
-              <div key={m.id} className="msg-in" style={{ marginBottom:15, display:"flex", flexDirection: m.u === user.name ? "row-reverse" : "row", gap:10 }}>
-                <div style={{ width:30, height:30, borderRadius:"50%", background:m.c, flexShrink:0 }} />
-                <div style={{ maxWidth:"70%" }}>
-                  <div style={{ fontSize:11, opacity:0.5, marginBottom:3 }}>{m.u} • {m.time}</div>
-                  <div style={{ padding:"10px 14px", borderRadius:12, background: m.u === user.name ? "#0070ff" : "rgba(255,255,255,0.05)", fontSize:13 }}>{m.t}</div>
+              <div key={m.id} style={{ marginBottom:15, display:"flex", flexDirection: m.u === user.name ? "row-reverse" : "row", gap:10 }}>
+                <div style={{ width:40, height:40, borderRadius:"50%", background:m.c, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:16 }}>{m.u[0]}</div>
+                <div style={{ maxWidth:"60%" }}>
+                  <div style={{ fontSize:11, opacity:0.6, marginBottom:3, fontWeight:600 }}>{m.u}</div>
+                  <div style={{ padding:"10px 14px", borderRadius:12, background: m.u === user.name ? "#0070ff" : "rgba(255,255,255,0.08)", fontSize:13, wordBreak:"break-word" }}>{m.t}</div>
                 </div>
               </div>
             ))}
             <div ref={endRef} />
           </div>
 
-          <div style={{ padding:20, position:"relative" }}>
-            {showEmojis && (
-              <div className="glass" style={{ position:"absolute", bottom:70, left:20, padding:10, borderRadius:10, display:"flex", gap:5 }}>
-                {EMOJIS.map(e => <span key={e} className="emoji-btn" onClick={()=>setInput(p=>p+e)}>{e}</span>)}
-              </div>
-            )}
+          <div style={{ padding:20 }}>
             <div style={{ display:"flex", gap:10, background:"rgba(255,255,255,0.03)", padding:8, borderRadius:12, border:"1px solid rgba(255,255,255,0.1)" }}>
-              <button onClick={()=>setShowEmojis(!showEmojis)} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer" }}>😊</button>
-              <label style={{ cursor:"pointer", fontSize:20 }}>📁<input type="file" hidden onChange={(e)=>send(e.target.files[0])} /></label>
               <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}
-                placeholder="Type a message..." style={{ flex:1, background:"none", border:"none", outline:"none", color:"#fff" }} />
-              <button onClick={()=>send()} style={{ background:"#00dcff", border:"none", padding:"5px 15px", borderRadius:8, color:"#000", fontWeight:800, cursor:"pointer" }}>SEND</button>
+                placeholder="Type a message..." style={{ flex:1, background:"none", border:"none", outline:"none", color:"#fff", fontSize:14 }} />
+              <button onClick={send} style={{ background:"#00dcff", border:"none", padding:"8px 20px", borderRadius:8, color:"#000", fontWeight:800, cursor:"pointer" }}>SEND</button>
             </div>
           </div>
         </div>
       );
     }
 
-    function VideoCall({ user, roomId, onExit }) {
+    function VideoView({ user, roomId }) {
       const [isScreenSharing, setIsScreenSharing] = useState(false);
       const videoRef = useRef();
       const screenRef = useRef();
 
       useEffect(() => {
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(s => {
-          if(videoRef.current) videoRef.current.srcObject = s;
-        }).catch(err => console.error('Media access denied:', err));
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+          .then(s => { if(videoRef.current) videoRef.current.srcObject = s; })
+          .catch(err => alert('Camera access denied: ' + err.message));
       }, []);
 
       const toggleScreen = async () => {
@@ -196,20 +182,19 @@
       };
 
       return (
-        <div style={{ position:"absolute", inset:0, zIndex:100, background:"#000", padding:20, display:"flex", flexDirection:"column" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
-            <h3>📹 {roomId} - LIVE CALL</h3>
-            <button onClick={onExit} style={{ background:"#ef4444", border:"none", padding:"8px 20px", borderRadius:8, color:"#fff", fontWeight:700, cursor:"pointer" }}>Exit Call</button>
+        <div style={{ height:"100%", padding:20, display:"flex", flexDirection:"column" }}>
+          <div className="glass" style={{ padding:"15px 25px", marginBottom:20, borderRadius:12 }}>
+            <h3 style={{ fontSize:15, color:"#00dcff" }}>📹 Video Call - Room {roomId}</h3>
           </div>
           <div style={{ flex:1, display:"grid", gridTemplateColumns: isScreenSharing ? "1fr 300px" : "1fr", gap:20 }}>
-            <div style={{ position:"relative" }}>
-              {isScreenSharing ? <video ref={screenRef} autoPlay muted playsInline /> : <video ref={videoRef} autoPlay muted playsInline />}
-              <div style={{ position:"absolute", top:10, left:10, background:"rgba(0,0,0,0.5)", padding:"4px 8px", borderRadius:4 }}>{isScreenSharing ? "Your Screen" : user.name}</div>
+            <div style={{ position:"relative", borderRadius:12, overflow:"hidden", background:"#000" }}>
+              {isScreenSharing ? <video ref={screenRef} autoPlay muted playsInline style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : <video ref={videoRef} autoPlay muted playsInline style={{ width:"100%", height:"100%", objectFit:"cover" }} />}
+              <div style={{ position:"absolute", top:10, left:10, background:"rgba(0,0,0,0.7)", padding:"6px 12px", borderRadius:6, fontSize:12, fontWeight:600 }}>{isScreenSharing ? "Screen Share" : user.name}</div>
             </div>
-            {isScreenSharing && <video ref={videoRef} autoPlay muted playsInline />}
+            {isScreenSharing && <video ref={videoRef} autoPlay muted playsInline style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} />}
           </div>
           <div style={{ marginTop:20, display:"flex", justifyContent:"center", gap:15 }}>
-            <button onClick={toggleScreen} style={{ background: isScreenSharing ? "#ef4444" : "#3b82f6", border:"none", padding:"12px 25px", borderRadius:10, color:"#fff", fontWeight:600, cursor:"pointer" }}>
+            <button onClick={toggleScreen} className="gradient-btn" style={{ padding:"12px 25px", borderRadius:10, color:"#000" }}>
                {isScreenSharing ? "🛑 Stop Sharing" : "🖥️ Share Screen"}
             </button>
           </div>
@@ -217,27 +202,8 @@
       );
     }
 
-    function DMView({ user }) {
-      return (
-        <div style={{ padding:40, textAlign:"center" }}>
-          <h2>👤 Private Messages</h2>
-          <div style={{ marginTop:30, color:"rgba(255,255,255,0.4)" }}>
-             Select a friend from the room to start a private encrypted session.
-             <div style={{ marginTop:20, display:"flex", justifyContent:"center", gap:10 }}>
-                {[ "Alex", "Sarah", "Jordan" ].map(n => (
-                   <div key={n} style={{ padding:20, background:"rgba(255,255,255,0.05)", borderRadius:12, cursor:"pointer", width:120 }}>
-                     <div style={{ fontSize:30 }}>👤</div>
-                     <div style={{ marginTop:10, fontWeight:700 }}>{n}</div>
-                   </div>
-                ))}
-             </div>
-          </div>
-        </div>
-      );
-    }
-
     function GameView() { 
-      return <div style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>🎮 Game Logic Remains Active - Play in Side Menu</div>; 
+      return <div style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>🎮 Game Arena Coming Soon</div>; 
     }
 
     function AIView() {
@@ -246,6 +212,8 @@
       ]);
       const [input, setInput] = useState('');
       const [loading, setLoading] = useState(false);
+      const [apiKey, setApiKey] = useState(() => localStorage.getItem('ai_api_key') || '');
+      const [provider, setProvider] = useState(() => localStorage.getItem('ai_provider') || 'claude');
       const endRef = useRef();
 
       useEffect(() => {
@@ -253,7 +221,10 @@
       }, [messages]);
 
       const sendMessage = async () => {
-        if (!input.trim()) return;
+        if (!input.trim() || !apiKey.trim()) {
+          alert('Please enter an API key first!');
+          return;
+        }
 
         const userMsg = { id: Date.now(), role: 'user', text: input };
         setMessages(p => [...p, userMsg]);
@@ -261,40 +232,41 @@
         setLoading(true);
 
         try {
-          // Try Claude API first
-          const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': localStorage.getItem('ai_api_key') || '',
-              'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify({
-              model: 'claude-3-5-sonnet-20241022',
-              max_tokens: 1024,
-              messages: [{ role: 'user', content: input }]
-            })
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            const assistantMsg = {
-              id: Date.now() + 1,
-              role: 'assistant',
-              text: data.content[0].text
-            };
-            setMessages(p => [...p, assistantMsg]);
-          } else {
-            throw new Error('Claude API failed');
-          }
-        } catch (err) {
-          console.log('Claude failed, trying OpenAI...');
-          try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          let response;
+          
+          if (provider === 'claude') {
+            response = await fetch('https://api.anthropic.com/v1/messages', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('openai_api_key') || ''}`
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify({
+                model: 'claude-3-5-sonnet-20241022',
+                max_tokens: 1024,
+                messages: [{ role: 'user', content: input }]
+              })
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const assistantMsg = {
+                id: Date.now() + 1,
+                role: 'assistant',
+                text: data.content[0].text
+              };
+              setMessages(p => [...p, assistantMsg]);
+            } else {
+              throw new Error('Claude API error');
+            }
+          } 
+          else if (provider === 'openai') {
+            response = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
               },
               body: JSON.stringify({
                 model: 'gpt-3.5-turbo',
@@ -312,89 +284,129 @@
               };
               setMessages(p => [...p, assistantMsg]);
             } else {
-              throw new Error('OpenAI API failed');
-            }
-          } catch (err2) {
-            console.log('OpenAI failed, trying Gemini...');
-            try {
-              const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${localStorage.getItem('gemini_api_key') || ''}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents: [{ parts: [{ text: input }] }]
-                })
-              });
-
-              if (response.ok) {
-                const data = await response.json();
-                const assistantMsg = {
-                  id: Date.now() + 1,
-                  role: 'assistant',
-                  text: data.candidates[0].content.parts[0].text
-                };
-                setMessages(p => [...p, assistantMsg]);
-              } else {
-                throw new Error('Gemini API failed');
-              }
-            } catch (err3) {
-              const errorMsg = {
-                id: Date.now() + 1,
-                role: 'assistant',
-                text: '⚠️ No API key configured. Please add your API key in settings (Claude, OpenAI, or Gemini).'
-              };
-              setMessages(p => [...p, errorMsg]);
+              throw new Error('OpenAI API error');
             }
           }
+          else if (provider === 'gemini') {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: input }] }]
+              })
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const assistantMsg = {
+                id: Date.now() + 1,
+                role: 'assistant',
+                text: data.candidates[0].content.parts[0].text
+              };
+              setMessages(p => [...p, assistantMsg]);
+            } else {
+              throw new Error('Gemini API error');
+            }
+          }
+        } catch (err) {
+          const errorMsg = {
+            id: Date.now() + 1,
+            role: 'assistant',
+            text: '❌ Error: ' + err.message + '. Check your API key!'
+          };
+          setMessages(p => [...p, errorMsg]);
         }
         setLoading(false);
       };
 
-      const setApiKey = (provider) => {
-        const key = prompt(`Enter your ${provider} API key:`);
-        if (key) {
-          localStorage.setItem(`${provider.toLowerCase()}_api_key`, key);
-          alert(`${provider} API key saved!`);
-        }
+      const saveApiKey = () => {
+        localStorage.setItem('ai_api_key', apiKey);
+        localStorage.setItem('ai_provider', provider);
+        alert('API key saved!');
       };
 
       return (
         <div style={{ height:'100%', display:'flex', flexDirection:'column', padding:20 }}>
-          <div className="glass" style={{ padding:15, marginBottom:20, borderRadius:12 }}>
-            <h3 style={{ marginBottom:10 }}>🤖 AI Tutor</h3>
-            <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-              <button onClick={() => setApiKey('Claude')} style={{ padding:'8px 12px', background:'rgba(0,220,255,0.2)', border:'1px solid #00dcff', borderRadius:6, color:'#00dcff', cursor:'pointer', fontSize:12 }}>+ Claude</button>
-              <button onClick={() => setApiKey('OpenAI')} style={{ padding:'8px 12px', background:'rgba(0,220,255,0.2)', border:'1px solid #00dcff', borderRadius:6, color:'#00dcff', cursor:'pointer', fontSize:12 }}>+ OpenAI</button>
-              <button onClick={() => setApiKey('Gemini')} style={{ padding:'8px 12px', background:'rgba(0,220,255,0.2)', border:'1px solid #00dcff', borderRadius:6, color:'#00dcff', cursor:'pointer', fontSize:12 }}>+ Gemini</button>
+          <div className="glass" style={{ padding:20, marginBottom:20, borderRadius:12 }}>
+            <h3 style={{ marginBottom:15, color:"#00dcff" }}>🤖 AI Tutor Setup</h3>
+            <div style={{ display:'flex', gap:10, marginBottom:15 }}>
+              {['claude', 'openai', 'gemini'].map(p => (
+                <button key={p} onClick={() => setProvider(p)} style={{ 
+                  flex:1,
+                  padding:'10px',
+                  background: provider === p ? '#00dcff' : 'rgba(255,255,255,0.05)',
+                  border: provider === p ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                  color: provider === p ? '#000' : '#00dcff',
+                  borderRadius:6,
+                  cursor:'pointer',
+                  fontWeight:700,
+                  fontSize:12,
+                  textTransform:'uppercase'
+                }}>
+                  {p === 'claude' ? '🧠 Claude' : p === 'openai' ? '🔮 OpenAI' : '✨ Gemini'}
+                </button>
+              ))}
             </div>
+            <textarea 
+              value={apiKey}
+              onChange={e => setApiKey(e.target.value)}
+              placeholder="Paste your API key here..."
+              style={{
+                width:'100%',
+                padding:12,
+                borderRadius:8,
+                border:'1px solid #00dcff',
+                background:'#000',
+                color:'#fff',
+                fontSize:12,
+                resize:'none',
+                height:80,
+                marginBottom:10,
+                fontFamily:'monospace'
+              }}
+            />
+            <button onClick={saveApiKey} style={{
+              width:'100%',
+              padding:10,
+              background:'#00dcff',
+              border:'none',
+              borderRadius:8,
+              color:'#000',
+              fontWeight:800,
+              cursor:'pointer',
+              fontSize:12
+            }}>
+              ✓ SAVE API KEY
+            </button>
           </div>
 
-          <div style={{ flex:1, overflowY:'auto', marginBottom:15 }}>
+          <div style={{ flex:1, overflowY:'auto', marginBottom:15, borderRadius:12, border:'1px solid rgba(255,255,255,0.1)', padding:15 }}>
             {messages.map(m => (
               <div key={m.id} style={{ marginBottom:15, display:'flex', flexDirection: m.role === 'user' ? 'row-reverse' : 'row', gap:10 }}>
-                <div style={{ width:30, height:30, borderRadius:'50%', background: m.role === 'user' ? '#0070ff' : '#00dcff', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>
+                <div style={{ width:36, height:36, borderRadius:'50%', background: m.role === 'user' ? '#0070ff' : '#00dcff', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:700 }}>
                   {m.role === 'user' ? '👤' : '🤖'}
                 </div>
                 <div style={{ maxWidth:'70%' }}>
-                  <div style={{ padding:'10px 14px', borderRadius:12, background: m.role === 'user' ? '#0070ff' : 'rgba(255,255,255,0.05)', fontSize:13, wordWrap:'break-word' }}>{m.text}</div>
+                  <div style={{ padding:'10px 14px', borderRadius:12, background: m.role === 'user' ? '#0070ff' : 'rgba(255,255,255,0.08)', fontSize:13, wordWrap:'break-word', lineHeight:1.4 }}>{m.text}</div>
                 </div>
               </div>
             ))}
-            {loading && <div style={{ textAlign:'center', color:'#00dcff' }}>⏳ Thinking...</div>}
+            {loading && <div style={{ textAlign:'center', color:'#00dcff', fontSize:14 }}>⏳ Thinking...</div>}
             <div ref={endRef} />
           </div>
 
-          <div style={{ display:'flex', gap:10, background:'rgba(255,255,255,0.03)', padding:8, borderRadius:12, border:'1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display:'flex', gap:10, background:'rgba(255,255,255,0.03)', padding:12, borderRadius:12, border:'1px solid rgba(255,255,255,0.1)' }}>
             <input 
               value={input} 
               onChange={e => setInput(e.target.value)} 
-              onKeyDown={e => e.key === 'Enter' && sendMessage()}
+              onKeyDown={e => e.key === 'Enter' && !loading && sendMessage()}
               placeholder="Ask me anything..." 
-              style={{ flex:1, background:'none', border:'none', outline:'none', color:'#fff' }} 
+              style={{ flex:1, background:'none', border:'none', outline:'none', color:'#fff', fontSize:13 }} 
             />
             <button 
               onClick={sendMessage} 
-              disabled={loading}
-              style={{ background:'#00dcff', border:'none', padding:'5px 15px', borderRadius:8, color:'#000', fontWeight:800, cursor:'pointer', opacity: loading ? 0.5 : 1 }}
+              disabled={loading || !apiKey}
+              style={{ background:'#00dcff', border:'none', padding:'8px 20px', borderRadius:8, color:'#000', fontWeight:800, cursor: (loading || !apiKey) ? 'not-allowed' : 'pointer', opacity: (loading || !apiKey) ? 0.5 : 1 }}
             >
               SEND
             </button>
@@ -406,12 +418,12 @@
     function JoinScreen({ onJoin }) {
       const [n, setN] = useState("anonymous");
       const [c, setC] = useState("");
-      const [mode, setMode] = useState("join"); // "join" or "create"
+      const [mode, setMode] = useState("join");
       const [generatedCode, setGeneratedCode] = useState("");
       
       const handleJoin = () => {
         if(n.trim() && c.trim()) {
-          onJoin(n, c, false);
+          onJoin(n, c);
         }
       };
 
@@ -419,7 +431,7 @@
         if(n.trim()) {
           const code = generateRoomCode();
           setGeneratedCode(code);
-          onJoin(n, code, true);
+          onJoin(n, code);
         }
       };
 
@@ -430,42 +442,41 @@
       return (
         <div style={{ height:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"radial-gradient(circle, #111, #000)", padding:20 }}>
           <div className="glass" style={{ padding:50, borderRadius:20, textAlign:"center", width:"100%", maxWidth:500 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, marginBottom:40 }}>
-              <div style={{ fontSize:32 }}>⚡</div>
-              <h1 className="pulse-glow" style={{ color:"#00dcff", fontSize:32, letterSpacing:2 }}>StudyZone</h1>
-            </div>
+            <div style={{ fontSize:40, marginBottom:15 }}>⚡</div>
+            <h1 className="pulse-glow" style={{ color:"#00dcff", fontSize:40, letterSpacing:2, marginBottom:10 }}>StudyZone</h1>
+            <p style={{ color:"#888", marginBottom:30, fontSize:14 }}>Advanced Study Collaboration</p>
 
             {/* Mode Toggle */}
             <div style={{ display:"flex", gap:10, marginBottom:30 }}>
               <button 
-                onClick={() => setMode("join")} 
+                onClick={() => { setMode("join"); setGeneratedCode(""); }} 
                 style={{ 
                   flex:1, 
                   padding:12, 
-                  background: mode === "join" ? "rgba(0,220,255,0.2)" : "transparent",
+                  background: mode === "join" ? "rgba(0,220,255,0.3)" : "transparent",
                   border: mode === "join" ? "2px solid #00dcff" : "1px solid rgba(255,255,255,0.2)",
                   color: mode === "join" ? "#00dcff" : "#888",
                   borderRadius:8, 
                   cursor:"pointer",
                   fontWeight:700,
-                  letterSpacing:1,
+                  letterSpacing:1.5,
                   fontSize:12
                 }}
               >
                 JOIN ROOM
               </button>
               <button 
-                onClick={() => setMode("create")} 
+                onClick={() => { setMode("create"); setC(""); }} 
                 style={{ 
                   flex:1, 
                   padding:12, 
-                  background: mode === "create" ? "rgba(0,220,255,0.2)" : "transparent",
+                  background: mode === "create" ? "rgba(0,220,255,0.3)" : "transparent",
                   border: mode === "create" ? "2px solid #00dcff" : "1px solid rgba(255,255,255,0.2)",
                   color: mode === "create" ? "#00dcff" : "#888",
                   borderRadius:8, 
                   cursor:"pointer",
                   fontWeight:700,
-                  letterSpacing:1,
+                  letterSpacing:1.5,
                   fontSize:12
                 }}
               >
@@ -475,7 +486,7 @@
 
             {/* Your Name */}
             <div style={{ marginBottom:20, textAlign:"left" }}>
-              <label style={{ fontSize:10, color:"#888", letterSpacing:1, display:"block", marginBottom:8 }}>YOUR NAME</label>
+              <label style={{ fontSize:11, color:"#888", letterSpacing:1.5, display:"block", marginBottom:8, fontWeight:700 }}>YOUR NAME</label>
               <input 
                 placeholder="anonymous" 
                 value={n} 
@@ -483,12 +494,13 @@
                 onKeyDown={e => e.key === 'Enter' && (mode === "join" ? handleJoin() : handleCreate())}
                 style={{ 
                   width:"100%", 
-                  padding:15, 
+                  padding:14, 
                   borderRadius:8, 
                   border:"1px solid #00dcff", 
                   background:"#000", 
                   color:"#fff",
-                  outline:"none"
+                  outline:"none",
+                  fontSize:13
                 }} 
               />
             </div>
@@ -496,7 +508,7 @@
             {/* Join Mode: Room Code Input */}
             {mode === "join" && (
               <div style={{ marginBottom:20, textAlign:"left" }}>
-                <label style={{ fontSize:10, color:"#888", letterSpacing:1, display:"block", marginBottom:8 }}>ROOM CODE</label>
+                <label style={{ fontSize:11, color:"#888", letterSpacing:1.5, display:"block", marginBottom:8, fontWeight:700 }}>ROOM CODE</label>
                 <input 
                   placeholder="Enter room code" 
                   value={c} 
@@ -504,12 +516,13 @@
                   onKeyDown={e => e.key === 'Enter' && handleJoin()}
                   style={{ 
                     width:"100%", 
-                    padding:15, 
+                    padding:14, 
                     borderRadius:8, 
                     border:"1px solid #00dcff", 
                     background:"#000", 
                     color:"#fff",
-                    outline:"none"
+                    outline:"none",
+                    fontSize:13
                   }} 
                 />
               </div>
@@ -522,14 +535,14 @@
                   onClick={generateCode}
                   style={{ 
                     width:"100%", 
-                    padding:15, 
+                    padding:14, 
                     background:"rgba(0,220,255,0.1)", 
                     border:"1px solid #00dcff",
                     borderRadius:8, 
                     color:"#00dcff", 
                     cursor:"pointer",
                     fontWeight:700,
-                    letterSpacing:1,
+                    letterSpacing:1.5,
                     fontSize:12
                   }}
                 >
@@ -541,24 +554,22 @@
             {/* Action Button */}
             <button 
               onClick={mode === "join" ? handleJoin : handleCreate}
+              className="gradient-btn"
               style={{ 
                 width:"100%", 
                 padding:15, 
-                background:"linear-gradient(135deg, #00dcff, #a78bfa)",
                 color:"#000", 
-                fontWeight:800, 
-                border:"none", 
                 borderRadius:8, 
                 cursor:"pointer",
-                letterSpacing:1,
-                fontSize:14,
-                marginBottom:15
+                letterSpacing:1.5,
+                fontSize:13,
+                marginBottom:20
               }}
             >
               {mode === "join" ? "JOIN & ENTER →" : "CREATE & ENTER →"}
             </button>
 
-            <p style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginBottom:30 }}>
+            <p style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginBottom:25 }}>
               No account needed. Share the code to invite friends.
             </p>
 
@@ -570,9 +581,9 @@
                 { icon:"🎮", label:"Game Arena" },
                 { icon:"🤖", label:"AI Tutor" }
               ].map(f => (
-                <div key={f.label} style={{ padding:15, background:"rgba(255,255,255,0.05)", borderRadius:10, textAlign:"center" }}>
+                <div key={f.label} style={{ padding:15, background:"rgba(255,255,255,0.05)", borderRadius:10, textAlign:"center", border:"1px solid rgba(255,255,255,0.1)" }}>
                   <div style={{ fontSize:24, marginBottom:8 }}>{f.icon}</div>
-                  <div style={{ fontSize:11, color:"#888", letterSpacing:0.5 }}>{f.label}</div>
+                  <div style={{ fontSize:11, color:"#888", letterSpacing:0.5, fontWeight:600 }}>{f.label}</div>
                 </div>
               ))}
             </div>
