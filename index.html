@@ -1,618 +1,803 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyZone Pro</title>
-  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    html,body,#root{height:100%;overflow:hidden;background:#05050a;color:#e2e8f0;font-family:'Nunito',sans-serif;}
-    ::-webkit-scrollbar{width:6px;}
-    ::-webkit-scrollbar-thumb{background:rgba(0,220,255,0.2);border-radius:10px;}
-    .glass{background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevStudio - Modern Web Solutions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00dcff;
+            --secondary: #ff006e;
+            --dark: #0a0e27;
+            --darker: #050912;
+            --gray: #888;
+            --light: #e2e8f0;
+            --accent: #a78bfa;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--darker);
+            color: var(--light);
+            overflow-x: hidden;
+        }
+
+        /* Utility Classes */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--darker);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 220, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: var(--darker);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+        }
+
+        /* Header/Navigation */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(5, 9, 18, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 220, 255, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 600;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-cta {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(0, 220, 255, 0.05) 0%, rgba(255, 0, 110, 0.05) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 220, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 0, 110, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -100px;
+            left: -100px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 0;
+            background: var(--darker);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title h2 {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+
+        .section-title p {
+            font-size: 16px;
+            color: var(--gray);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            padding: 40px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-card.glass {
+            border: 1px solid rgba(0, 220, 255, 0.2);
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 220, 255, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* Portfolio Section */
+        .portfolio {
+            padding: 100px 0;
+            background: linear-gradient(180deg, var(--darker) 0%, rgba(167, 139, 250, 0.05) 100%);
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .portfolio-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            group: portfolio;
+        }
+
+        .portfolio-item {
+            background: linear-gradient(135deg, rgba(0, 220, 255, 0.2), rgba(255, 0, 110, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 220, 255, 0.1);
+        }
+
+        .portfolio-item:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+
+        .portfolio-content {
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .portfolio-content h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .portfolio-content p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 100px 0;
+            background: var(--darker);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            padding: 50px 40px;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card.glass {
+            border: 1px solid rgba(0, 220, 255, 0.2);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary);
+            box-shadow: 0 0 40px rgba(0, 220, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .pricing-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+
+        .pricing-card .price {
+            font-size: 48px;
+            color: var(--primary);
+            font-weight: 800;
+            margin: 20px 0;
+        }
+
+        .pricing-card .price span {
+            font-size: 18px;
+            color: var(--gray);
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .pricing-features li::before {
+            content: '✓ ';
+            color: var(--primary);
+            font-weight: 700;
+            margin-right: 10px;
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 100px 0;
+            background: linear-gradient(135deg, rgba(0, 220, 255, 0.05) 0%, rgba(255, 0, 110, 0.05) 100%);
+        }
+
+        .contact-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 12px 15px;
+            border: 1px solid rgba(0, 220, 255, 0.3);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            color: var(--light);
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 220, 255, 0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(5, 9, 18, 0.8);
+            border-top: 1px solid rgba(0, 220, 255, 0.1);
+            padding: 50px 0 20px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h4 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-size: 14px;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 48px;
+            }
+
+            .nav-links {
+                gap: 20px;
+                font-size: 14px;
+            }
+
+            .section-title h2 {
+                font-size: 36px;
+            }
+
+            .features-grid,
+            .portfolio-grid,
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .nav-links {
+                gap: 15px;
+            }
+
+            .logo {
+                font-size: 18px;
+            }
+
+            .section-title h2 {
+                font-size: 28px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  
-  <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
-
-    function generateRoomCode() {
-      return Math.floor(Math.random() * 900000 + 100000).toString();
-    }
-
-    // Built-in AI responses
-    const aiResponses = {
-      greetings: [
-        "Hey there! How can I help you study today?",
-        "Hello! What subject would you like to explore?",
-        "Hi! I'm ready to help you learn. What's on your mind?",
-        "Greetings! Ask me anything about your studies."
-      ],
-      math: [
-        "Math is all about understanding concepts first. Would you like help with algebra, geometry, or calculus?",
-        "Let me help! Are you working on equations, fractions, or something else?",
-        "Math can be tricky! Remember to break problems into smaller steps.",
-        "What's the specific math problem you need help with?"
-      ],
-      science: [
-        "Science is fascinating! Are you studying biology, chemistry, physics, or earth science?",
-        "Let's explore! What science topic interests you most?",
-        "Remember, science is about observation and experimentation.",
-        "Which science subject would you like to dive into?"
-      ],
-      history: [
-        "History teaches us where we came from. What era or event interests you?",
-        "I love history! Is there a specific period you're studying?",
-        "Great question! Let's explore historical events together.",
-        "Which historical period would you like to learn about?"
-      ],
-      english: [
-        "English is about communication and creativity. What can I help with?",
-        "Writing, literature, or grammar? Let me know!",
-        "Let's improve your English skills. What's the topic?",
-        "Are you working on essays, literature analysis, or grammar?"
-      ],
-      default: [
-        "That's interesting! Tell me more.",
-        "I understand. How can I help further?",
-        "Great question! Let me think about that.",
-        "I'm here to help. What else would you like to know?",
-        "That makes sense. Any other questions?"
-      ]
-    };
-
-    function getAIResponse(userInput) {
-      const input = userInput.toLowerCase();
-      
-      if (input.match(/hi|hello|hey|greetings/)) {
-        return aiResponses.greetings[Math.floor(Math.random() * aiResponses.greetings.length)];
-      }
-      if (input.match(/math|algebra|geometry|calculus|equation/)) {
-        return aiResponses.math[Math.floor(Math.random() * aiResponses.math.length)];
-      }
-      if (input.match(/science|biology|chemistry|physics|earth/)) {
-        return aiResponses.science[Math.floor(Math.random() * aiResponses.science.length)];
-      }
-      if (input.match(/history|war|revolution|period|dynasty/)) {
-        return aiResponses.history[Math.floor(Math.random() * aiResponses.history.length)];
-      }
-      if (input.match(/english|writing|essay|grammar|literature/)) {
-        return aiResponses.english[Math.floor(Math.random() * aiResponses.english.length)];
-      }
-      
-      return aiResponses.default[Math.floor(Math.random() * aiResponses.default.length)];
-    }
-
-    function JoinScreen({ onJoin }) {
-      const [n, setN] = useState("anonymous");
-      const [c, setC] = useState("");
-      const [mode, setMode] = useState("join");
-      const [generatedCode, setGeneratedCode] = useState("");
-      
-      const handleJoin = () => {
-        if (n.trim() && c.trim()) {
-          onJoin(n, c);
-        }
-      };
-
-      const handleCreate = () => {
-        if (n.trim()) {
-          const code = generateRoomCode();
-          setGeneratedCode(code);
-          onJoin(n, code);
-        }
-      };
-
-      const generateCode = () => {
-        setGeneratedCode(generateRoomCode());
-      };
-
-      return (
-        <div style={{ height:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"radial-gradient(circle, #111, #000)", padding:20 }}>
-          <div className="glass" style={{ padding:50, borderRadius:20, textAlign:"center", width:"100%", maxWidth:500 }}>
-            <div style={{ fontSize:40, marginBottom:15 }}>⚡</div>
-            <h1 style={{ color:"#00dcff", fontSize:40, letterSpacing:2, marginBottom:10, fontWeight:800 }}>StudyZone</h1>
-            <p style={{ color:"#888", marginBottom:30, fontSize:14 }}>Advanced Study Collaboration</p>
-
-            <div style={{ display:"flex", gap:10, marginBottom:30 }}>
-              <button 
-                onClick={() => { setMode("join"); setGeneratedCode(""); }} 
-                style={{ 
-                  flex:1, 
-                  padding:12, 
-                  background: mode === "join" ? "rgba(0,220,255,0.3)" : "transparent",
-                  border: mode === "join" ? "2px solid #00dcff" : "1px solid rgba(255,255,255,0.2)",
-                  color: mode === "join" ? "#00dcff" : "#888",
-                  borderRadius:8, 
-                  cursor:"pointer",
-                  fontWeight:700,
-                  letterSpacing:1.5,
-                  fontSize:12
-                }}
-              >
-                JOIN ROOM
-              </button>
-              <button 
-                onClick={() => { setMode("create"); setC(""); }} 
-                style={{ 
-                  flex:1, 
-                  padding:12, 
-                  background: mode === "create" ? "rgba(0,220,255,0.3)" : "transparent",
-                  border: mode === "create" ? "2px solid #00dcff" : "1px solid rgba(255,255,255,0.2)",
-                  color: mode === "create" ? "#00dcff" : "#888",
-                  borderRadius:8, 
-                  cursor:"pointer",
-                  fontWeight:700,
-                  letterSpacing:1.5,
-                  fontSize:12
-                }}
-              >
-                CREATE ROOM
-              </button>
-            </div>
-
-            <div style={{ marginBottom:20, textAlign:"left" }}>
-              <label style={{ fontSize:11, color:"#888", letterSpacing:1.5, display:"block", marginBottom:8, fontWeight:700, textTransform:"uppercase" }}>Your Name</label>
-              <input 
-                placeholder="anonymous" 
-                value={n} 
-                onChange={e => setN(e.target.value)} 
-                onKeyDown={e => e.key === 'Enter' && (mode === "join" ? handleJoin() : handleCreate())}
-                style={{ 
-                  width:"100%", 
-                  padding:14, 
-                  borderRadius:8, 
-                  border:"1px solid #00dcff", 
-                  background:"#000", 
-                  color:"#fff",
-                  outline:"none",
-                  fontSize:13
-                }} 
-              />
-            </div>
-
-            {mode === "join" && (
-              <div style={{ marginBottom:20, textAlign:"left" }}>
-                <label style={{ fontSize:11, color:"#888", letterSpacing:1.5, display:"block", marginBottom:8, fontWeight:700, textTransform:"uppercase" }}>Room Code</label>
-                <input 
-                  placeholder="Enter room code" 
-                  value={c} 
-                  onChange={e => setC(e.target.value.toUpperCase())} 
-                  onKeyDown={e => e.key === 'Enter' && handleJoin()}
-                  style={{ 
-                    width:"100%", 
-                    padding:14, 
-                    borderRadius:8, 
-                    border:"1px solid #00dcff", 
-                    background:"#000", 
-                    color:"#fff",
-                    outline:"none",
-                    fontSize:13
-                  }} 
-                />
-              </div>
-            )}
-
-            {mode === "create" && (
-              <div style={{ marginBottom:20 }}>
-                <button 
-                  onClick={generateCode}
-                  style={{ 
-                    width:"100%", 
-                    padding:14, 
-                    background:"rgba(0,220,255,0.1)", 
-                    border:"1px solid #00dcff",
-                    borderRadius:8, 
-                    color:"#00dcff", 
-                    cursor:"pointer",
-                    fontWeight:700,
-                    letterSpacing:1.5,
-                    fontSize:12,
-                    textTransform:"uppercase"
-                  }}
-                >
-                  🔄 GENERATE ROOM CODE {generatedCode && ` ${generatedCode}`}
-                </button>
-              </div>
-            )}
-
-            <button 
-              onClick={mode === "join" ? handleJoin : handleCreate}
-              style={{ 
-                width:"100%", 
-                padding:15, 
-                background:"linear-gradient(135deg, #00dcff, #a78bfa)",
-                color:"#000", 
-                fontWeight:800, 
-                border:"none", 
-                borderRadius:8, 
-                cursor:"pointer",
-                letterSpacing:1.5,
-                fontSize:13,
-                marginBottom:20
-              }}
-            >
-              {mode === "join" ? "JOIN & ENTER →" : "CREATE & ENTER →"}
-            </button>
-
-            <p style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginBottom:25 }}>
-              No account needed. Share the code to invite friends.
-            </p>
-
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10 }}>
-              {[
-                { icon:"💬", label:"Live Chat" },
-                { icon:"📹", label:"Video Call" },
-                { icon:"🎮", label:"Game Arena" },
-                { icon:"🤖", label:"AI Tutor" }
-              ].map(f => (
-                <div key={f.label} style={{ padding:15, background:"rgba(255,255,255,0.05)", borderRadius:10, textAlign:"center", border:"1px solid rgba(255,255,255,0.1)" }}>
-                  <div style={{ fontSize:24, marginBottom:8 }}>{f.icon}</div>
-                  <div style={{ fontSize:11, color:"#888", letterSpacing:0.5, fontWeight:600 }}>{f.label}</div>
+    <!-- Navigation -->
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">DevStudio</div>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#portfolio">Portfolio</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+                <div class="nav-cta">
+                    <button class="btn btn-secondary">Sign In</button>
+                    <button class="btn btn-primary">Get Started</button>
                 </div>
-              ))}
-            </div>
-          </div>
+            </nav>
         </div>
-      );
-    }
+    </header>
 
-    function MainApp({ session, onLogout }) {
-      const [view, setView] = useState("chat");
-
-      return (
-        <div style={{ display:"flex", height:"100vh" }}>
-          <div className="glass" style={{ width:240, display:"flex", flexDirection:"column", borderRight:"1px solid rgba(255,255,255,0.1)" }}>
-            <div style={{ padding:25, borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-              <h2 style={{ color:"#00dcff", fontSize:20, letterSpacing:1, fontWeight:800 }}>STUDYZONE PRO</h2>
-              <p style={{ fontSize:10, opacity:0.4, marginTop:4 }}>ROOM: {session.roomId}</p>
-            </div>
-            <div style={{ flex:1, padding:10 }}>
-              {[ 
-                {id:"chat", icon:"💬", label:"Live Chat"},
-                {id:"video", icon:"📹", label:"Video Call"},
-                {id:"game", icon:"🎮", label:"Game Arena"},
-                {id:"ai", icon:"🤖", label:"AI Tutor"}
-              ].map(n => (
-                <div key={n.id} onClick={()=>setView(n.id)} style={{ padding:12, borderRadius:8, marginBottom:4, fontSize:14, cursor:"pointer", transition:"0.2s", background: view===n.id ? "rgba(0,220,255,0.15)" : "transparent", borderLeft: view===n.id ? "3px solid #00dcff" : "3px solid transparent", color: view===n.id ? "#00dcff" : "#e2e8f0" }}>
-                  {n.icon} &nbsp; {n.label}
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Build Your Digital Future</h1>
+                <p>Create stunning, modern websites and applications that captivate your audience and drive real results for your business.</p>
+                <div class="hero-cta">
+                    <button class="btn btn-primary">Start Free Trial</button>
+                    <button class="btn btn-secondary">Watch Demo</button>
                 </div>
-              ))}
             </div>
-            <div style={{ padding:15, background:"rgba(0,0,0,0.2)", display:"flex", alignItems:"center", gap:10, cursor:"pointer" }} onClick={onLogout}>
-               <div style={{ width:32, height:32, background:session.color, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#000', fontWeight:800 }}>{session.name[0]}</div>
-               <div style={{ flex:1 }}>
-                 <div style={{ fontSize:13, fontWeight:700 }}>{session.name}</div>
-                 <div style={{ fontSize:10, opacity:0.5 }}>Click to logout</div>
-               </div>
-            </div>
-          </div>
-
-          <div style={{ flex:1, position:"relative", background:"#05050a" }}>
-            {view==="chat" && <ChatView user={session} roomId={session.roomId} />}
-            {view==="video" && <VideoView user={session} roomId={session.roomId} />}
-            {view==="game" && <GameView />}
-            {view==="ai" && <AIView />}
-          </div>
         </div>
-      );
-    }
+    </section>
 
-    function ChatView({ user, roomId }) {
-      const [msgs, setMsgs] = useState([]);
-      const [input, setInput] = useState("");
-      const endRef = useRef();
-
-      const send = () => {
-        if (!input.trim()) return;
-        const m = { 
-          id: Date.now(), 
-          u: user.name, 
-          c: user.color, 
-          t: input, 
-          time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-        };
-        setMsgs(p => [...p, m]);
-        setInput("");
-      };
-
-      useEffect(() => {
-        endRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, [msgs]);
-
-      return (
-        <div style={{ height:"100%", display:"flex", flexDirection:"column" }}>
-          <div className="glass" style={{ padding:"15px 25px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
-            <h3 style={{ fontSize:15, color:"#00dcff", fontWeight:800 }}>💬 Live Chat</h3>
-            <span style={{ fontSize:11, color:"#22c55e" }}>● Active Now</span>
-          </div>
-
-          <div style={{ flex:1, overflowY:"auto", padding:20 }}>
-            {msgs.length === 0 && <div style={{ textAlign:"center", color:"#666", marginTop:40 }}>No messages yet. Start chatting!</div>}
-            {msgs.map(m => (
-              <div key={m.id} style={{ marginBottom:15, display:"flex", flexDirection: m.u === user.name ? "row-reverse" : "row", gap:10 }}>
-                <div style={{ width:40, height:40, borderRadius:"50%", background:m.c, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:16 }}>{m.u[0]}</div>
-                <div style={{ maxWidth:"60%" }}>
-                  <div style={{ fontSize:11, opacity:0.6, marginBottom:3, fontWeight:600 }}>{m.u} • {m.time}</div>
-                  <div style={{ padding:"10px 14px", borderRadius:12, background: m.u === user.name ? "#0070ff" : "rgba(255,255,255,0.08)", fontSize:13, wordBreak:"break-word" }}>{m.t}</div>
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Why Choose Us?</h2>
+                <p>Everything you need to create amazing digital experiences</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card glass">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Optimized performance that delivers results. Your projects will load faster than ever before.</p>
                 </div>
-              </div>
-            ))}
-            <div ref={endRef} />
-          </div>
-
-          <div style={{ padding:20 }}>
-            <div style={{ display:"flex", gap:10, background:"rgba(255,255,255,0.03)", padding:8, borderRadius:12, border:"1px solid rgba(255,255,255,0.1)" }}>
-              <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}
-                placeholder="Type a message..." style={{ flex:1, background:"none", border:"none", outline:"none", color:"#fff", fontSize:14 }} />
-              <button onClick={send} style={{ background:"#00dcff", border:"none", padding:"8px 20px", borderRadius:8, color:"#000", fontWeight:800, cursor:"pointer" }}>SEND</button>
+                <div class="feature-card glass">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Beautiful Design</h3>
+                    <p>Modern, stunning designs that captivate your audience and create memorable experiences.</p>
+                </div>
+                <div class="feature-card glass">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure & Reliable</h3>
+                    <p>Enterprise-grade security with 99.9% uptime guarantee. Your data is always protected.</p>
+                </div>
+                <div class="feature-card glass">
+                    <div class="feature-icon">💡</div>
+                    <h3>Innovative Tech</h3>
+                    <p>Built with the latest technologies and frameworks for cutting-edge solutions.</p>
+                </div>
+                <div class="feature-card glass">
+                    <div class="feature-icon">📊</div>
+                    <h3>Analytics Ready</h3>
+                    <p>Comprehensive analytics and insights to track performance and drive growth.</p>
+                </div>
+                <div class="feature-card glass">
+                    <div class="feature-icon">🤝</div>
+                    <h3>24/7 Support</h3>
+                    <p>Our expert team is always here to help you succeed with dedicated support.</p>
+                </div>
             </div>
-          </div>
         </div>
-      );
-    }
+    </section>
 
-    function VideoView({ user, roomId }) {
-      const [isScreenSharing, setIsScreenSharing] = useState(false);
-      const videoRef = useRef();
-      const screenRef = useRef();
+    <!-- Portfolio Section -->
+    <section id="portfolio" class="portfolio">
+        <div class="container">
+            <div class="section-title">
+                <h2>Recent Projects</h2>
+                <p>Check out some of our recent work and see what we can do for you</p>
+            </div>
+            <div class="portfolio-grid">
+                <div class="portfolio-item">
+                    <div class="portfolio-content">
+                        <h3>E-Commerce Platform</h3>
+                        <p>Next.js + Stripe</p>
+                    </div>
+                </div>
+                <div class="portfolio-item">
+                    <div class="portfolio-content">
+                        <h3>SaaS Dashboard</h3>
+                        <p>React + Node.js</p>
+                    </div>
+                </div>
+                <div class="portfolio-item">
+                    <div class="portfolio-content">
+                        <h3>Mobile App</h3>
+                        <p>React Native</p>
+                    </div>
+                </div>
+                <div class="portfolio-item">
+                    <div class="portfolio-content">
+                        <h3>AI Chat Bot</h3>
+                        <p>Machine Learning</p>
+                    </div>
+                </div>
+                <div class="portfolio-item">
+                    <div class="portfolio-content">
+                        <h3>Real Estate Portal</h3>
+                        <p>Vue.js + Firebase</p>
+                    </div>
+                </div>
+                <div class="portfolio-item">
+                    <div class="portfolio-content">
+                        <h3>Social Network</h3>
+                        <p>Full Stack MERN</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-      useEffect(() => {
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-          .then(s => { if(videoRef.current) videoRef.current.srcObject = s; })
-          .catch(err => alert('Camera access denied'));
-      }, []);
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-title">
+                <h2>Simple, Transparent Pricing</h2>
+                <p>Choose the perfect plan for your needs. Always flexible, always fair.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card glass">
+                    <h3>Starter</h3>
+                    <div class="price">$29<span>/month</span></div>
+                    <ul class="pricing-features">
+                        <li>Up to 5 Projects</li>
+                        <li>5GB Storage</li>
+                        <li>Basic Analytics</li>
+                        <li>Email Support</li>
+                        <li>Community Access</li>
+                    </ul>
+                    <button class="btn btn-secondary">Get Started</button>
+                </div>
+                <div class="pricing-card glass featured">
+                    <h3>Professional</h3>
+                    <div class="price">$99<span>/month</span></div>
+                    <ul class="pricing-features">
+                        <li>Unlimited Projects</li>
+                        <li>500GB Storage</li>
+                        <li>Advanced Analytics</li>
+                        <li>Priority Support</li>
+                        <li>Team Collaboration</li>
+                    </ul>
+                    <button class="btn btn-primary">Get Started</button>
+                </div>
+                <div class="pricing-card glass">
+                    <h3>Enterprise</h3>
+                    <div class="price">$299<span>/month</span></div>
+                    <ul class="pricing-features">
+                        <li>Everything in Pro</li>
+                        <li>Unlimited Storage</li>
+                        <li>Custom Analytics</li>
+                        <li>24/7 Phone Support</li>
+                        <li>Dedicated Account Manager</li>
+                    </ul>
+                    <button class="btn btn-secondary">Contact Us</button>
+                </div>
+            </div>
+        </div>
+    </section>
 
-      const toggleScreen = async () => {
-        try {
-          if (!isScreenSharing) {
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            if(screenRef.current) screenRef.current.srcObject = stream;
-            setIsScreenSharing(true);
-            stream.getVideoTracks()[0].onended = () => setIsScreenSharing(false);
-          } else {
-            screenRef.current?.srcObject?.getTracks().forEach(t => t.stop());
-            setIsScreenSharing(false);
-          }
-        } catch(err) {
-          console.error('Screen sharing error:', err);
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="contact-content">
+                <div class="section-title">
+                    <h2>Let's Get in Touch</h2>
+                    <p>Have a question or ready to start your project? We'd love to hear from you.</p>
+                </div>
+                <form class="contact-form" onsubmit="handleSubmit(event)">
+                    <div class="form-group">
+                        <label for="name">Your Name</label>
+                        <input type="text" id="name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" placeholder="What's this about?" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" placeholder="Tell us more about your project..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>DevStudio</h4>
+                    <p style="color: var(--gray); font-size: 14px; line-height: 1.6;">Creating beautiful, modern digital experiences for businesses worldwide.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Products</h4>
+                    <ul>
+                        <li><a href="#">Website Builder</a></li>
+                        <li><a href="#">App Development</a></li>
+                        <li><a href="#">Cloud Hosting</a></li>
+                        <li><a href="#">Analytics Suite</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 DevStudio. All rights reserved. | Built with ❤️</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+            
+            alert(`Thank you ${name}! Your message has been received. We'll get back to you at ${email} soon!`);
+            
+            // Reset form
+            event.target.reset();
         }
-      };
 
-      return (
-        <div style={{ height:"100%", padding:20, display:"flex", flexDirection:"column" }}>
-          <div className="glass" style={{ padding:"15px 25px", marginBottom:20, borderRadius:12 }}>
-            <h3 style={{ fontSize:15, color:"#00dcff", fontWeight:800 }}>📹 Video Call - Room {roomId}</h3>
-          </div>
-          <div style={{ flex:1, display:"grid", gridTemplateColumns: isScreenSharing ? "1fr 300px" : "1fr", gap:20 }}>
-            <div style={{ position:"relative", borderRadius:12, overflow:"hidden", background:"#000" }}>
-              {isScreenSharing ? <video ref={screenRef} autoPlay muted playsInline style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : <video ref={videoRef} autoPlay muted playsInline style={{ width:"100%", height:"100%", objectFit:"cover" }} />}
-              <div style={{ position:"absolute", top:10, left:10, background:"rgba(0,0,0,0.7)", padding:"6px 12px", borderRadius:6, fontSize:12, fontWeight:600 }}>{isScreenSharing ? "Screen Share" : user.name}</div>
-            </div>
-            {isScreenSharing && <video ref={videoRef} autoPlay muted playsInline style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} />}
-          </div>
-          <div style={{ marginTop:20, display:"flex", justifyContent:"center", gap:15 }}>
-            <button onClick={toggleScreen} style={{ padding:"12px 25px", borderRadius:10, background:"linear-gradient(135deg, #00dcff, #a78bfa)", color:"#000", border:"none", fontWeight:800, cursor:"pointer" }}>
-               {isScreenSharing ? "🛑 Stop Sharing" : "🖥️ Share Screen"}
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    function GameView() {
-      const [currentGame, setCurrentGame] = useState(null);
-      
-      return (
-        <div style={{ height:"100%", display:"flex", flexDirection:"column" }}>
-          {!currentGame ? (
-            <>
-              <div className="glass" style={{ padding:"15px 25px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
-                <h3 style={{ fontSize:15, color:"#00dcff", fontWeight:800 }}>🎮 Game Arena</h3>
-              </div>
-              <div style={{ flex:1, display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:20, padding:30 }}>
-                {[
-                  { id: "quiz", icon: "🧠", name: "Study Quiz", desc: "Test your knowledge" },
-                  { id: "memory", icon: "🎯", name: "Memory Match", desc: "Train your memory" },
-                  { id: "typing", icon: "⌨️", name: "Speed Typing", desc: "Type fast & accurate" },
-                  { id: "trivia", icon: "🎓", name: "Trivia Challenge", desc: "Answer random trivia" }
-                ].map(game => (
-                  <div key={game.id} onClick={() => setCurrentGame(game.id)} style={{ padding:30, background:"rgba(0,220,255,0.1)", border:"1px solid #00dcff", borderRadius:12, cursor:"pointer", textAlign:"center", transition:"0.3s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(0,220,255,0.2)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(0,220,255,0.1)"}>
-                    <div style={{ fontSize:50, marginBottom:10 }}>{game.icon}</div>
-                    <h3 style={{ color:"#00dcff", marginBottom:5 }}>{game.name}</h3>
-                    <p style={{ color:"#888", fontSize:12 }}>{game.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            currentGame === "quiz" && <QuizGame onBack={() => setCurrentGame(null)} />
-          )}
-          {currentGame && currentGame !== "quiz" && (
-            <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column" }}>
-              <button onClick={() => setCurrentGame(null)} style={{ padding:"12px 25px", background:"#00dcff", color:"#000", border:"none", borderRadius:8, fontWeight:800, cursor:"pointer", marginBottom:20 }}>← Back to Games</button>
-              <div style={{ fontSize:24, color:"#888" }}>🎮 {currentGame.toUpperCase()} - Coming Soon</div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function QuizGame({ onBack }) {
-      const [score, setScore] = useState(0);
-      const [current, setCurrent] = useState(0);
-      const [answered, setAnswered] = useState(false);
-
-      const questions = [
-        { q: "What is the capital of France?", options: ["London", "Paris", "Berlin", "Madrid"], correct: 1 },
-        { q: "What is 2 + 2?", options: ["3", "4", "5", "6"], correct: 1 },
-        { q: "What is the largest planet?", options: ["Earth", "Mars", "Jupiter", "Saturn"], correct: 2 },
-        { q: "Who wrote Romeo and Juliet?", options: ["Marlowe", "Shakespeare", "Bacon", "Donne"], correct: 1 },
-        { q: "What is the chemical symbol for Gold?", options: ["Go", "Gd", "Au", "Ag"], correct: 2 }
-      ];
-
-      const handleAnswer = (idx) => {
-        if (!answered) {
-          if (idx === questions[current].correct) setScore(s => s + 1);
-          setAnswered(true);
-        }
-      };
-
-      const nextQuestion = () => {
-        if (current < questions.length - 1) {
-          setCurrent(c => c + 1);
-          setAnswered(false);
-        }
-      };
-
-      if (current >= questions.length) {
-        return (
-          <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:20 }}>
-            <div style={{ fontSize:60 }}>🏆</div>
-            <h2 style={{ color:"#00dcff", fontSize:32 }}>Quiz Complete!</h2>
-            <p style={{ fontSize:24, color:"#a78bfa" }}>Score: {score}/{questions.length}</p>
-            <button onClick={onBack} style={{ padding:"12px 25px", background:"#00dcff", color:"#000", border:"none", borderRadius:8, fontWeight:800, cursor:"pointer" }}>Play Again</button>
-          </div>
-        );
-      }
-
-      return (
-        <div style={{ flex:1, display:"flex", flexDirection:"column", padding:30 }}>
-          <div style={{ marginBottom:20 }}>
-            <button onClick={onBack} style={{ padding:"8px 15px", background:"rgba(0,220,255,0.2)", border:"1px solid #00dcff", color:"#00dcff", borderRadius:6, fontWeight:800, cursor:"pointer" }}>← Back</button>
-          </div>
-          <div style={{ textAlign:"center", marginBottom:30 }}>
-            <p style={{ color:"#888", marginBottom:10 }}>Question {current + 1}/{questions.length}</p>
-            <h2 style={{ color:"#00dcff", fontSize:24 }}>{questions[current].q}</h2>
-          </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:15, marginBottom:30 }}>
-            {questions[current].options.map((opt, idx) => (
-              <button 
-                key={idx}
-                onClick={() => handleAnswer(idx)}
-                disabled={answered}
-                style={{ 
-                  padding:20, 
-                  background: answered ? (idx === questions[current].correct ? "#22c55e" : idx === current ? "#ef4444" : "rgba(255,255,255,0.05)") : "rgba(255,255,255,0.05)",
-                  border: answered ? (idx === questions[current].correct ? "2px solid #22c55e" : "1px solid rgba(255,255,255,0.1)") : "1px solid rgba(255,255,255,0.1)",
-                  color:"#fff", 
-                  borderRadius:8, 
-                  cursor: answered ? "not-allowed" : "pointer",
-                  fontWeight:700,
-                  opacity: answered ? 1 : 0.7
-                }}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-          {answered && (
-            <button 
-              onClick={nextQuestion}
-              style={{ padding:"12px 25px", background:"#00dcff", color:"#000", border:"none", borderRadius:8, fontWeight:800, cursor:"pointer" }}
-            >
-              {current < questions.length - 1 ? "Next Question" : "See Results"}
-            </button>
-          )}
-          <div style={{ marginTop:20, textAlign:"center", color:"#888" }}>
-            Current Score: <span style={{ color:"#a78bfa", fontWeight:800 }}>{score}</span>
-          </div>
-        </div>
-      );
-    }
-
-    function AIView() {
-      const [messages, setMessages] = useState([
-        { id: 1, role: 'assistant', text: 'Hello! I\'m your AI Study Tutor. Ask me anything about your studies!' }
-      ]);
-      const [input, setInput] = useState('');
-      const [loading, setLoading] = useState(false);
-      const endRef = useRef();
-
-      useEffect(() => {
-        endRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, [messages]);
-
-      const sendMessage = async () => {
-        if (!input.trim()) return;
-
-        const userMsg = { id: Date.now(), role: 'user', text: input };
-        setMessages(p => [...p, userMsg]);
-        setInput('');
-        setLoading(true);
-
-        // Simulate thinking delay
-        setTimeout(() => {
-          const response = getAIResponse(input);
-          const assistantMsg = {
-            id: Date.now() + 1,
-            role: 'assistant',
-            text: response
-          };
-          setMessages(p => [...p, assistantMsg]);
-          setLoading(false);
-        }, 800);
-      };
-
-      return (
-        <div style={{ height:'100%', display:'flex', flexDirection:'column', padding:20 }}>
-          <div className="glass" style={{ padding:"15px 25px", marginBottom:20, borderRadius:12 }}>
-            <h3 style={{ fontSize:15, color:"#00dcff", fontWeight:800 }}>🤖 AI Tutor (Built-in)</h3>
-            <p style={{ fontSize:11, color:"#888", marginTop:5 }}>No API keys needed - fully functional AI</p>
-          </div>
-
-          <div style={{ flex:1, overflowY:'auto', marginBottom:15, borderRadius:12, border:'1px solid rgba(255,255,255,0.1)', padding:15 }}>
-            {messages.map(m => (
-              <div key={m.id} style={{ marginBottom:15, display:'flex', flexDirection: m.role === 'user' ? 'row-reverse' : 'row', gap:10 }}>
-                <div style={{ width:36, height:36, borderRadius:'50%', background: m.role === 'user' ? '#0070ff' : '#00dcff', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
-                  {m.role === 'user' ? '👤' : '🤖'}
-                </div>
-                <div style={{ maxWidth:'70%' }}>
-                  <div style={{ padding:'10px 14px', borderRadius:12, background: m.role === 'user' ? '#0070ff' : 'rgba(255,255,255,0.08)', fontSize:13, wordWrap:'break-word', lineHeight:1.4 }}>{m.text}</div>
-                </div>
-              </div>
-            ))}
-            {loading && <div style={{ textAlign:'center', color:'#00dcff', fontSize:14 }}>⏳ Thinking...</div>}
-            <div ref={endRef} />
-          </div>
-
-          <div style={{ display:'flex', gap:10, background:'rgba(255,255,255,0.03)', padding:12, borderRadius:12, border:'1px solid rgba(255,255,255,0.1)' }}>
-            <input 
-              value={input} 
-              onChange={e => setInput(e.target.value)} 
-              onKeyDown={e => e.key === 'Enter' && !loading && sendMessage()}
-              placeholder="Ask me anything..." 
-              style={{ flex:1, background:'none', border:'none', outline:'none', color:'#fff', fontSize:13 }} 
-            />
-            <button 
-              onClick={sendMessage} 
-              disabled={loading}
-              style={{ background:'#00dcff', border:'none', padding:'8px 20px', borderRadius:8, color:'#000', fontWeight:800, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
-            >
-              SEND
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    function App() {
-      const [session, setSession] = useState(null);
-
-      if (!session) {
-        return <JoinScreen onJoin={(name, code) => setSession({ name, roomId: code, color: '#'+Math.floor(Math.random()*16777215).toString(16) })} />;
-      }
-
-      return <MainApp session={session} onLogout={() => setSession(null)} />;
-    }
-
-    ReactDOM.render(<App />, document.getElementById('root'));
-  </script>
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
