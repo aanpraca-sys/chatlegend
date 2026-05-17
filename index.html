@@ -78,19 +78,16 @@ const novaResponses = {
 function getNovaResponse(userInput) {
   const input = userInput.toLowerCase();
   
-  // Greeting detection
   if (input.match(/hi|hello|hey|greetings|nova|assistant/)) {
     return novaResponses.greetings[Math.floor(Math.random() * novaResponses.greetings.length)];
   }
   
-  // Academic subject detection
   for (const subject in novaResponses.academic) {
     if (input.includes(subject)) {
       return novaResponses.academic[subject][Math.floor(Math.random() * novaResponses.academic[subject].length)];
     }
   }
   
-  // Motivation keywords
   if (input.match(/hard|struggle|difficult|confused|stuck|help/)) {
     return novaResponses.motivation[Math.floor(Math.random() * novaResponses.motivation.length)];
   }
@@ -269,7 +266,7 @@ function JoinScreen({ onJoin }) {
       {/* Features */}
       <div style={{ 
         display: "grid", 
-        gridTemplateColumns: "1fr 1fr 1fr 1fr", 
+        gridTemplateColumns: "1fr 1fr 1fr", 
         gap: 10, 
         marginTop: 40,
         width: "100%",
@@ -277,7 +274,6 @@ function JoinScreen({ onJoin }) {
       }}>
         {[
           { icon: "💬", label: "Live Chat" },
-          { icon: "🎥", label: "Video Calls" },
           { icon: "🤖", label: "AI Tutor" },
           { icon: "🎮", label: "Study Games" }
         ].map((feature, index) => (
@@ -344,23 +340,6 @@ function App() {
                     }}
                   >
                     <span>💬</span> Chat
-                  </button>
-                  <button 
-                    onClick={() => setView("video")} 
-                    style={{ 
-                      padding: 10, 
-                      background: view === "video" ? "rgba(0,220,255,0.2)" : "transparent", 
-                      border: "none", 
-                      borderRadius: 6, 
-                      color: view === "video" ? "#00dcff" : "#888", 
-                      textAlign: "left", 
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10
-                    }}
-                  >
-                    <span>🎥</span> Video Call
                   </button>
                   <button 
                     onClick={() => setView("ai")} 
@@ -436,7 +415,6 @@ function App() {
           {/* Main Content */}
           <div style={{ flex: 1, position: "relative", background: "#05050a" }}>
             {view === "chat" && <ChatView user={session} roomId={session.roomId} />}
-            {view === "video" && <VideoView user={session} roomId={session.roomId} />}
             {view === "ai" && <AIView user={session} />}
             {view === "games" && <GameView />}
           </div>
@@ -472,26 +450,6 @@ function ChatView({ user, roomId }) {
     
     setMessages(prev => [...prev, userMessage]);
     setInput("");
-    
-    // Simulate other users responding after a delay
-    setTimeout(() => {
-      const responses = [
-        `Hi ${user.name}! How can I help with your studies today?`,
-        "Great to see you in StudyZone!",
-        "What subject are you focusing on?",
-        "Need help with anything specific?"
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      
-      const responseMessage = {
-        id: Date.now() + 1,
-        text: randomResponse,
-        user: "StudyPartner",
-        timestamp: new Date().toLocaleTimeString()
-      };
-      
-      setMessages(prev => [...prev, responseMessage]);
-    }, 1500);
   };
 
   return (
@@ -628,128 +586,6 @@ function ChatView({ user, roomId }) {
           }}
         >
           SEND
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Video View Component - Enhanced Placeholder
-function VideoView({ user, roomId }) {
-  return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <div className="glass" style={{ padding: "15px 25px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <h2 style={{ color: "#00dcff", fontSize: 20, fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
-          <span>🎥</span> Video Call - {roomId}
-        </h2>
-        <p style={{ color: "#888", fontSize: 12, marginTop: 5 }}>Video calling feature coming soon!</p>
-      </div>
-      
-      {/* Video Area */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "#000", padding: 20 }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ 
-            width: 120, 
-            height: 120, 
-            borderRadius: "50%", 
-            background: "rgba(0,220,255,0.1)", 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center", 
-            marginBottom: 30 
-          }}>
-            <span style={{ fontSize: 40, color: "#00dcff" }}>👤</span>
-          </div>
-          
-          <h2 style={{ color: "#00dcff", marginBottom: 10 }}>Video Calling Coming Soon</h2>
-          <p style={{ color: "#888", maxWidth: 500, lineHeight: 1.6 }}>
-            We're currently working on the video calling feature. 
-            In the meantime, you can use the chat to connect with your study partners!
-          </p>
-          
-          <div style={{ marginTop: 30, display: "flex", gap: 15, justifyContent: "center" }}>
-            <button 
-              style={{ 
-                padding: "12px 25px", 
-                background: "#00dcff", 
-                border: "none", 
-                borderRadius: 8, 
-                color: "#000", 
-                fontWeight: 800, 
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 8
-              }}
-            >
-              <span>💬</span> Switch to Chat
-            </button>
-            <button 
-              style={{ 
-                padding: "12px 25px", 
-                background: "transparent", 
-                border: "1px solid #00dcff", 
-                borderRadius: 8, 
-                color: "#00dcff", 
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 8
-              }}
-            >
-              <span>🔄</span> Refresh
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Controls */}
-      <div className="glass" style={{ padding: "15px 25px", borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "center", gap: 15 }}>
-        <button style={{
-          width: 50,
-          height: 50,
-          borderRadius: "50%",
-          background: "#ef4444",
-          border: "none",
-          color: "#fff",
-          fontSize: 20,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer"
-        }}>
-          ❌
-        </button>
-        <button style={{
-          width: 50,
-          height: 50,
-          borderRadius: "50%",
-          background: "#22c55e",
-          border: "none",
-          color: "#fff",
-          fontSize: 20,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer"
-        }}>
-          🎤
-        </button>
-        <button style={{
-          width: 50,
-          height: 50,
-          borderRadius: "50%",
-          background: "#f59e0b",
-          border: "none",
-          color: "#fff",
-          fontSize: 20,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer"
-        }}>
-          📹
         </button>
       </div>
     </div>
@@ -900,7 +736,7 @@ function AIView({ user }) {
   );
 }
 
-// Game View Component - Fully Functional Quiz Game
+// Game View Component - Fully Functional Quiz & Memory Games
 function GameView() {
   const [currentGame, setCurrentGame] = useState(null);
   
@@ -931,7 +767,7 @@ function GameView() {
     ]
   };
 
-  // Game Components
+  // Quiz Game Component
   const QuizGame = ({ onBack }) => {
     const [score, setScore] = useState(0);
     const [current, setCurrent] = useState(0);
@@ -986,6 +822,7 @@ function GameView() {
     );
   };
 
+  // Memory Game Component
   const MemoryGame = ({ onBack }) => {
     const [cards, setCards] = useState([...memoryGameData.cards].sort(() => Math.random() - 0.5));
     const [flipped, setFlipped] = useState([]);
@@ -1078,199 +915,40 @@ function GameView() {
   if (!currentGame) {
     return (
       <div style={{ height:"100%", display:"flex", flexDirection:"column" }}>
-        {!currentGame ? (
-          <>
-            <div className="glass" style={{ padding:"15px 25px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
-              <h3 style={{ fontSize:15, color:"#00dcff", fontWeight:800 }}>🎮 Game Arena</h3>
+        <div className="glass" style={{ padding:"15px 25px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
+          <h3 style={{ fontSize:15, color:"#00dcff", fontWeight:800 }}>🎮 Game Arena</h3>
+        </div>
+        <div style={{ flex:1, display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:20, padding:30 }}>
+          {[
+            { id: "quiz", icon: "🧠", name: "Study Quiz", desc: "Test your knowledge" },
+            { id: "memory", icon: "🎯", name: "Memory Match", desc: "Train your memory" }
+          ].map(game => (
+            <div 
+              key={game.id} 
+              onClick={() => setCurrentGame(game.id)} 
+              style={{ 
+                padding:30, 
+                background:"rgba(0,220,255,0.1)", 
+                border:"1px solid #00dcff", 
+                borderRadius:12, 
+                cursor:"pointer", 
+                textAlign:"center", 
+                transition:"0.3s" 
+              }} 
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(0,220,255,0.2)"}
+              onMouseLeave={e => e.currentTarget.style.background = "rgba(0,220,255,0.1)"}
+            >
+              <div style={{ fontSize:50, marginBottom:10 }}>{game.icon}</div>
+              <h3 style={{ color:"#00dcff", marginBottom:5 }}>{game.name}</h3>
+              <p style={{ color:"#888", fontSize:12 }}>{game.desc}</p>
             </div>
-            <div style={{ flex:1, display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:20, padding:30 }}>
-              {[
-                { id: "quiz", icon: "🧠", name: "Study Quiz", desc: "Test your knowledge" },
-                { id: "memory", icon: "🎯", name: "Memory Match", desc: "Train your memory" },
-                { id: "typing", icon: "⌨️", name: "Speed Typing", desc: "Type fast & accurate" },
-                { id: "trivia", icon: "🎓", name: "Trivia Challenge", desc: "Answer random trivia" }
-              ].map(game => (
-                <div 
-                  key={game.id} 
-                  onClick={() => setCurrentGame(game.id)} 
-                  style={{ 
-                    padding:30, 
-                    background:"rgba(0,220,255,0.1)", 
-                    border:"1px solid #00dcff", 
-                    borderRadius:12, 
-                    cursor:"pointer", 
-                    textAlign:"center", 
-                    transition:"0.3s" 
-                  }} 
-                  onMouseEnter={e => e.currentTarget.style.background = "rgba(0,220,255,0.2)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "rgba(0,220,255,0.1)"}
-                >
-                  <div style={{ fontSize:50, marginBottom:10 }}>{game.icon}</div>
-                  <h3 style={{ color:"#00dcff", marginBottom:5 }}>{game.name}</h3>
-                  <p style={{ color:"#888", fontSize:12 }}>{game.desc}</p>
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          currentGame === "quiz" && <QuizGame onBack={() => setCurrentGame(null)} />
-        )}
-        
-        {currentGame && currentGame !== "quiz" && (
-          <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column" }}>
-            <button onClick={() => setCurrentGame(null)} style={{ padding:"12px 25px", background:"#00dcff", color:"#000", border:"none", borderRadius:8, fontWeight:800, cursor:"pointer", marginBottom:20 }}>← Back to Games</button>
-            <div style={{ fontSize:24, color:"#888" }}>🎮 {currentGame.toUpperCase()} - Coming Soon</div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     );
   }
   
-  return null;
-}
-
-// Updated AI View Component
-function AIView({ user }) {
-  const [messages, setMessages] = useState([
-    { 
-      id: Date.now(), 
-      role: 'assistant', 
-      text: `Hello ${user.name}! I'm Nova, your personal study assistant. How can I help you today? Ask me anything about your studies!` 
-    }
-  ]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  // Auto-scroll to bottom of chat
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    
-    // Add user message
-    const userMsg = {
-      id: Date.now(),
-      role: 'user',
-      text: input
-    };
-    
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setLoading(true);
-    
-    // Simulate AI thinking delay
-    setTimeout(() => {
-      // Get AI response using built-in function
-      const aiResponse = getNovaResponse(input);
-      
-      // Add AI response
-      const assistantMsg = {
-        id: Date.now() + 1,
-        role: 'assistant',
-        text: aiResponse
-      };
-      
-      setMessages(prev => [...prev, assistantMsg]);
-      setLoading(false);
-    }, 800);
-  };
-
-  return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <div className="glass" style={{ padding: "15px 25px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <h2 style={{ color: "#00dcff", fontSize: 20, fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
-          <span>🤖</span> Nova AI Tutor
-        </h2>
-        <p style={{ color: "#888", fontSize: 12, marginTop: 5 }}>Ask me anything about your studies!</p>
-      </div>
-      
-      {/* Messages Area */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
-        {messages.map(message => (
-          <div 
-            key={message.id} 
-            style={{ 
-              marginBottom: 20,
-              display: 'flex',
-              flexDirection: message.role === 'assistant' ? 'row' : 'row-reverse',
-              alignItems: 'flex-start'
-            }}
-          >
-            <div style={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              background: message.role === 'assistant' ? 'rgba(0,220,255,0.2)' : 'rgba(255,255,255,0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 10px'
-            }}>
-              {message.role === 'assistant' ? '🤖' : '👤'}
-            </div>
-            
-            <div style={{
-              background: message.role === 'assistant' ? 'rgba(0,220,255,0.1)' : 'rgba(255,255,255,0.05)',
-              borderRadius: message.role === 'assistant' ? '8px' : '8px 0px 8px 8px',
-              padding: '12px 15px',
-              maxWidth: '70%',
-              position: 'relative'
-            }}>
-              <p style={{ 
-                color: message.role === 'assistant' ? '#00dcff' : '#fff',
-                fontSize: 14,
-                lineHeight: 1.5
-              }}>
-                {message.text}
-              </p>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-      
-      {/* Input Area */}
-      <div className="glass" style={{ padding: "15px 25px", borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex" }}>
-        <input 
-          type="text" 
-          value={input} 
-          onChange={(e) => setInput(e.target.value)} 
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder="Ask Nova anything about your studies..." 
-          style={{ 
-            flex: 1, 
-            padding: 12, 
-            borderRadius: 8, 
-            border: "1px solid rgba(0,220,255,0.3)", 
-            background: "#000", 
-            color: "#fff", 
-            fontSize: 14 
-          }} 
-        />
-        <button 
-          onClick={sendMessage} 
-          disabled={loading || !input.trim()} 
-          style={{ 
-            marginLeft: 10, 
-            padding: "12px 20px", 
-            background: "#00dcff", 
-            border: "none", 
-            borderRadius: 8, 
-            color: "#000", 
-            fontWeight: 800, 
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.5 : 1
-          }} 
-        >
-          {loading ? 'Thinking...' : 'SEND'}
-        </button>
-      </div>
-    </div>
-  );
+  return currentGame === "quiz" ? <QuizGame onBack={() => setCurrentGame(null)} /> : <MemoryGame onBack={() => setCurrentGame(null)} />;
 }
 
 // Main rendering
